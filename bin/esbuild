@@ -1,62 +1,137 @@
 #!/usr/bin/env node
 
 const esbuild = await import('esbuild')
-const fs = await import('fs')
+const path = await import('node:path')
+const fs = await import('node:fs')
 
+// ---------------------------------------------------------------------------
+// Shorthand print functions
+// ---------------------------------------------------------------------------
+const println = console.log.bind(console);
+const print = process.stdout.write.bind(process.stdout);
+
+// ---------------------------------------------------------------------------
+// Determine the primary extension the project uses. Then read the contents
+// of the package.json file.
+// ---------------------------------------------------------------------------
 const ext = fs.existsSync('src/index.ts') ? '.ts' : '.js'
-const packageJSON = (
-  JSON.parse(fs
-    .readFileSync('package.json')
-    .toString()
-  )
-)
-
+const mapExt = `${ext}.map`
+const packageJSON = (JSON.parse(fs.readFileSync('package.json').toString()))
 const { iifeGlobalName, version } = packageJSON
-const bundleName = `${packageJSON.name}.bundle.${version}.js`
-const outfile = `dist/${bundleName}`
-const iifeDefaultName = sanitizeForVariableName(packageJSON.name)
 
-esbuild
-  .build({
-    entryPoints: [`src/index${ext}`],
-    bundle: true,
-    mainFields: ["browser"],
-    sourcemap: true,
-    minify: true,
-    splitting: false,
-    globalName: iifeGlobalName && iifeGlobalName !== null
-      ? iifeGlobalName
-      : iifeDefaultName,
-    platform: "browser",
-    outfile,
-    target: ['esnext'],
-  })
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
+// ---------------------------------------------------------------------------
+// Generate file names based on the version specified in the package.json
+// as well as .map extensions for the source maps. Create a path to the
+// releases directory and a named variant where the version numbers are
+// replaced with the string 'latest'.
+// ---------------------------------------------------------------------------
+const bundle = (v, ext = '.js') => `${packageJSON.name}.bundle.${v}${ext}`
+const distJs  = [`dist/${bundle(version)}`, `dist/${bundle(version, mapExt)}`]
+const latest  = distJs.map(p => p.replace(version, 'latest'))
+const release = distJs.map(p => p.replace('dist', 'releases'));
+const messages = getMessages({version, bundle, latest, release});
 
-try {
+// ---------------------------------------------------------------------------
+// Generate a browser configuration object with all the values needed to
+// perform the esbuild.
+// ---------------------------------------------------------------------------
+const browserConfig = getBuildConfig(messages);
+
+// ---------------------------------------------------------------------------
+// Create a file containing the version number of the project at the time of
+// of build.
+// ---------------------------------------------------------------------------
+await attempt(messages.creating.version, () => {
+  fs.writeFileSync(messages.file.version, `${version}`);
+})
+
+// ---------------------------------------------------------------------------
+// Create an esbuild given the options supplied in the config.
+// ---------------------------------------------------------------------------
+await attempt(messages.creating.bundle, async () => {
+  const response = await esbuild
+    .build(browserConfig)
+    .catch((e) => {
+      console.error(e)
+      process.exit(1)
+    });
+
+  const contents = fs.readFileSync(distJs[0]).toString().replace(
+    /^var .*?=/,
+    messages.iifeValue
+  );
+  fs.writeFileSync(distJs[0], contents);
+
+  return response;
+});
+
+// ---------------------------------------------------------------------------
+// Copy the output bundle to a file without a specific version number in
+// its in name, but with the string 'latest' instead.
+// ---------------------------------------------------------------------------
+await attempt(messages.creating.latest, () => {
+  fs.copyFileSync(distJs[0], latest[0]);
+  fs.copyFileSync(distJs[1], latest[1]);
+});
+
+// ---------------------------------------------------------------------------
+// Move the bunlde file with the version number to the 'releases/' directory
+// ---------------------------------------------------------------------------
+await attempt(messages.creating.release, () => {
+  fs.renameSync(distJs[0], release[0]);
+  fs.renameSync(distJs[1], release[1]);
+});
+
+// ---------------------------------------------------------------------------
+// Recreate the package.json with updated property values
+// ---------------------------------------------------------------------------
+await attempt('Updating package.json', () => {
   let packageJSONString
 
-  packageJSON.browser = outfile
+  packageJSON.browser = messages.file.outfile
   packageJSONString = JSON.stringify(packageJSON, null, 2)
 
   fs.writeFileSync('package.json', packageJSONString)
-}
-catch (error) {
+}, (error) => {
   console.error(error)
 
   console.warn('Unable to update package.json, the browser property may be incorrect')
-  console.warn(`It should read ${outfile}`)
-}
+  console.warn(`It should read ${messages.file.outfile}`)
+})
+
+// ---------------------------------------------------------------------------
+// Functions used throughout the build file.
+// ---------------------------------------------------------------------------
 
 /**
- * Sanitizes a string to make it safe to use as a JavaScript variable name.
- * @param str The string to be sanitized.
- * @returns A sanitized string safe to use as a variable name.
+ * Sanitizes a string to be a valid JavaScript variable name.
+ *
+ * This function takes a string and converts it to a valid JavaScript variable
+ * name. It follows these rules:
+ *
+ *  - Converts the string to camelCase.
+ *  - Removes any invalid characters (only allows a-z, A-Z, 0-9, $, and _).
+ *  - Ensures the variable name does not start with a digit or uppercase letter.
+ *  - Checks against reserved keywords and prepends an underscore if needed.
+ *
+ * @param {string} str - The string to sanitize.
+ * @returns {string} The sanitized string as a valid JavaScript variable name.
+ * @throws {TypeError} If the input is not a string.
+ * @example
+ * const sanitized = sanitizeForVariableName('hello world');
+ * console.log(sanitized); // Output: "helloWorld"
+ *
+ * const sanitized2 = sanitizeForVariableName('123abc');
+ * console.log(sanitized2); // Output: "_123abc"
+ *
+ * const sanitized3 = sanitizeForVariableName('class');
+ * console.log(sanitized3); // Output: "_class"
  */
 function sanitizeForVariableName(str) {
+  if (typeof str !== 'string') {
+    throw new TypeError('Input must be a string');
+  }
+
   // Regular expression to match valid JS variable name characters and word boundaries
   const validChars = /[a-zA-Z0-9_$]/g;
   const wordBoundary = /[^a-zA-Z0-9$]+(.)/g;
@@ -88,4 +163,141 @@ function sanitizeForVariableName(str) {
   }
 
   return sanitized;
+}
+
+/**
+ * Attempts to execute an action and handles success or failure.
+ *
+ * @async
+ * @function attempt
+ * @param {string} message - The message to print before attempting the action.
+ * @param {Function} action - The action to attempt.
+ * @param {Function} [errorfn] - Optional error handling function.
+ * @param {string} [success='SUCCESS'] - The success message to print.
+ * @param {string} [failure='FAILURE'] - The failure message to print.
+ * @returns {Promise<*>} - The response from the action, or undefined if an
+ * error occurred.
+ * @throws {Error} - If an error occurs during the action and no error
+ * handling function is provided.
+ * @example
+ * const result = await attempt(
+ *   'Trying to save file...',
+ *   () => saveFile('example.txt', 'Hello, world!'),
+ *   (error) => console.error('Error saving file:', error),
+ *   'File saved successfully',
+ *   'Failed to save file'
+ * );
+ */
+async function attempt(
+  message,
+  action,
+  errorfn,
+  success = 'SUCCESS',
+  failure = 'FAILURE'
+) {
+  let response = undefined;
+
+  print(message)
+  try {
+    response = action();
+    println(messages.state(success))
+  }
+  catch(error) {
+    if (errorfn) {
+      println('')
+      errorfn(error)
+    }
+    else {
+      println(messages.state(failure))
+      console.error(error)
+    }
+  }
+
+  return response;
+}
+
+/**
+ * Generates a build configuration object for esbuild.
+ *
+ * @param {Object} strings - An object containing various string values used
+ * to generate the build configuration.
+ * @param {string} strings.ext - The file extension of the entry point.
+ * @param {string} [strings.iifeGlobalName] - The global variable name for the
+ * IIFE build. If not provided, falls back to `strings.iifeDefaultName`.
+ * @param {string} strings.iifeDefaultName - The default global variable name
+ * for the IIFE build, used if `strings.iifeGlobalName` is not provided.
+ * @param {string} strings.file.dist - The output file path for the bundled
+ * file.
+ *
+ * @returns {Object} The generated build configuration object for esbuild.
+ *
+ * @example
+ * const buildConfig = getBuildConfig({
+ *   ext: '.js',
+ *   iifeGlobalName: 'MyLibrary',
+ *   iifeDefaultName: 'MyDefaultLibrary',
+ *   file: {
+ *     dist: 'dist/my-library.js'
+ *   }
+ * });
+ */
+function getBuildConfig(strings) {
+  return {
+    entryPoints: [`src/index${strings.ext}`],
+    bundle: true,
+    mainFields: ["browser"],
+    sourcemap: true,
+    minify: true,
+    splitting: false,
+    globalName: strings.iifeGlobalName && strings.iifeGlobalName !== null
+      ? strings.iifeGlobalName
+      : strings.iifeDefaultName,
+    platform: "browser",
+    outfile: strings.file.dist,
+    target: ['esnext'],
+  };
+}
+
+/**
+ * Generates messages and file paths for building and bundling the package.
+ *
+ * @param {Object} options - The options for generating messages.
+ * @param {string} options.version - The version of the package.
+ * @param {Function} options.bundle - A function that returns the bundle name.
+ * @param {Array} options.latest - An array containing the latest file name.
+ * @param {Array} options.release - An array containing the release file name.
+ * @returns {Object} An object containing the generated messages and file paths.
+ */
+function getMessages({version, bundle, latest, release}) {
+  const bundleName = `${packageJSON.name}.bundle.${version}.js`;
+
+  return {
+    iifeGlobalName,
+    iifeDefaultName: sanitizeForVariableName(packageJSON.name),
+    iifeValue: `(globalThis.nejs = (globalThis.nejs||{})).html =`,
+    ext,
+
+    bundle: bundleName,
+    outfile: `dist/${bundleName}`,
+    state: s => ` \x1b[1m[\x1b[32;22m${s}\x1b[39;1m]\x1b[0m`,
+
+    stdout: {
+      package: `\x1b[1m${packageJSON.name}\x1b[22m`,
+      bundle: `\x1b[1m${packageJSON.name}.bundle.${version}.js\x1b[22m`,
+      latest: `\x1b[1m${packageJSON.name}.bundle.latest.js\x1b[22m`,
+    },
+
+    creating: {
+      bundle: 'Creating browser bundle',
+      latest: `Creating ${latest[0]}(.map)`,
+      release: `Creating ${release[0]}(.map)`,
+      version: `Updating version file contents`,
+    },
+
+    file: {
+      outfile: bundle(version),
+      dist: `dist/${bundle(version)}`,
+      version: packageJSON.version,
+    }
+  };
 }

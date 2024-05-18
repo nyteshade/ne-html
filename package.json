@@ -1,6 +1,6 @@
 {
   "author": "Brielle Harrison <nyteshade at gmail.com>",
-  "browser": "dist/@nejs/html.bundle.2.0.7.js",
+  "browser": "@nejs/html.bundle.2.0.9.js",
   "description": "A very convenient way to generate HTML elements using JavaScript",
   "devDependencies": {
     "@jest/expect": "^29.7.0",
@@ -53,5 +53,5 @@
   "source": "src/index.js",
   "type": "module",
   "types": "dist/esm/index.d.ts",
-  "version": "2.0.7"
+  "version": "2.0.9"
 }
