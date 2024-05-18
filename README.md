@@ -47,13 +47,13 @@ async function nsJsHtmlScript(useDocument) {
   const scriptTag = document.createElement('script');
   scriptTag.setAttribute('type', 'application/javascript');
   scriptTag.setAttribute('src', url.href);
-  //scriptTag.onload = function() {
-  //  deferred.resolve(globalThis?.nejs?.html);
-  //}
+  scriptTag.onload = function() {
+   deferred.resolve(globalThis?.nejs?.html);
+  }
 
   doc.body.append(scriptTag);
   return deferred.promise;
 }
 
-await nsJsHtmlScript();
+const { HTML, commands } = await nsJsHtmlScript();
 ```

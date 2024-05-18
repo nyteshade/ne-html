@@ -297,7 +297,7 @@ function getMessages({version, bundle, latest, release}) {
     file: {
       outfile: bundle(version),
       dist: `dist/${bundle(version)}`,
-      version: packageJSON.version,
+      version: 'version',
     }
   };
 }
