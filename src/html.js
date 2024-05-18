@@ -46,7 +46,7 @@ const isArr = o => Array.isArray(o);
 const isStr = o => typeof o === 'string';
 
 // Symbol identifier
-const prefix = '@nejs.html';
+const prefix = process?.env?.NEJS_HTML_PREFIX ?? '@nejs.html';
 
 /**
  * Defines a collection of unique symbols used as commands within
@@ -81,6 +81,8 @@ export const commands = {
 
   register: Symbol.for(`${prefix}.factory.element`),
   define: Symbol.for(`${prefix}.define.webcomponent`),
+
+  additionalFunctions: Symbol.for(`${prefix}.result.prototype`),
 
   prefix,
 }
