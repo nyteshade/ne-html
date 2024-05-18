@@ -1,7 +1,7 @@
 {
   "author": "Brielle Harrison <nyteshade at gmail.com>",
-  "browser": "dist/@nejs/html.bundle.0.0.1.js",
-  "description": "",
+  "browser": "dist/@nejs/html.bundle.2.0.0.js",
+  "description": "A very convenient way to generate HTML elements using JavaScript",
   "devDependencies": {
     "@jest/expect": "^29.7.0",
     "esbuild": "^0.19.12",
@@ -10,18 +10,16 @@
     "jest-cli": "^29.7.0",
     "jest-localstorage-mock": "^2.4.26",
     "minimatch": "^9.0.4",
-    "parcel": "latest",
     "prompts": "^2.4.2",
     "rimraf": "^5.0.7",
-    "svgo": "^3.3.2",
     "typescript": "^5.4.5"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "exports": {
     ".": {
-      "import": "./dist/mjs/index.js",
+      "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     }
   },
@@ -40,19 +38,19 @@
     "localStorage"
   ],
   "license": "MIT",
-  "iifeGlobalName": "",
-  "module": "dist/index.js",
+  "iifeGlobalName": "HTML",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "name": "@nejs/html",
   "scripts": {
-    "build": "parcel build src/html.js",
+    "build": "bin/clean && bin/build && bin/esbuild",
     "check": "tsc --noEmit",
     "clean": "bin/clean",
     "module": "bin/build",
-    "start": "parcel",
     "test": "jest"
   },
-  "source": "src/index.ts",
+  "source": "src/index.js",
   "type": "module",
-  "types": "dist/index.d.ts",
-  "version": "0.0.1"
+  "types": "dist/esm/index.d.ts",
+  "version": "2.0.0"
 }
