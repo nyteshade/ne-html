@@ -6,6 +6,7 @@ export namespace commands {
     export let createStorage: symbol;
     export let register: symbol;
     export let define: symbol;
+    export let additionalFunctions: symbol;
     export { prefix };
 }
 export class HTML {
@@ -114,4 +115,4 @@ export class HTML {
     static create(...args: any[]): Element;
 }
 export default HTML;
-declare const prefix: "@nejs.html";
+declare const prefix: string;
