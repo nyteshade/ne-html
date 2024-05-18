@@ -3,4 +3,4 @@ var nejs_html=(()=>{var k=Object.defineProperty;var N=Object.getOwnPropertyDescr
 `,`or any of these:
 `,`  ${c.join(",")}
 `].join(""))),n){let i=n?.options??{},o=S(n?.children)&&n.children||void 0;S(n)?n={children:n}:n.children=o??[],n.options={...t,...i}}return n}static[h.createStorage](e,s,n=!0){let t=Reflect.has(globalThis,h.createStorage),[c,i]=[t,t&&globalThis[h.createStorage]||new Map];c||(globalThis[h.createStorage]=i);let o=n&&new Map||void 0,[a,d]=[i.has(e),e&&(i.get(e)??o)],l=n&&new Map||void 0,[f,u]=[i.has(s),s&&(i.get(s)??l)];return!a&&d&&i.set(e,d),!f&&u&&i.set(s,u),u||d||i}static[h.register](e,s,n){let t=r[h.createStorage](h.register,e);t.set("factory",s),t.set("config",n)}},M=Object.create(Function.prototype),R=new Proxy(M,{get(r,e,s){let n=y[h.createStorage](h.register,e,!1);if(n){let t=n.get("factory"),c=n.get("config");if(typeof t=="function"&&typeof c=="object")return()=>t(c)}return typeof e=="string"&&e!=="create"?y.create.bind(y,e):Reflect.get(r,e,s)}});Object.setPrototypeOf(y,R);return T(D);})();
-//# sourceMappingURL=html.bundle.2.0.0.js.map
+//# sourceMappingURL=html.bundle.2.0.2.js.map
