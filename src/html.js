@@ -46,7 +46,8 @@ const isArr = o => Array.isArray(o);
 const isStr = o => typeof o === 'string';
 
 // Symbol identifier
-const prefix = process?.env?.NEJS_HTML_PREFIX ?? '@nejs.html';
+const envPrefix = typeof process !== 'undefined' && process.env.NEJS_HTML_PREFIX;
+const prefix = envPrefix || '@nejs.html';
 
 /**
  * Defines a collection of unique symbols used as commands within
