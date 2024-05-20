@@ -6,9 +6,3 @@ Object.defineProperty(exports, "HTML", { enumerable: true, get: function () { re
 Object.defineProperty(exports, "commands", { enumerable: true, get: function () { return html_js_1.commands; } });
 var levels_js_1 = require("./factories/levels.js");
 Object.defineProperty(exports, "Levels", { enumerable: true, get: function () { return levels_js_1.Levels; } });
-const html_js_2 = require("./html.js");
-const levels_js_2 = require("./factories/levels.js");
-html_js_2.HTML[html_js_2.commands.register]('NELowSignalLevel', levels_js_2.Levels, { preset: 'low', signal: true, noBackground: true });
-html_js_2.HTML[html_js_2.commands.register]('NEMediumSignalLevel', levels_js_2.Levels, { preset: 'medium', signal: true, noBackground: true });
-html_js_2.HTML[html_js_2.commands.register]('NEHighSignalLevel', levels_js_2.Levels, { preset: 'high', signal: true, noBackground: true });
-html_js_2.HTML[html_js_2.commands.register]('NELevel', levels_js_2.Levels, { percent: 0 });
