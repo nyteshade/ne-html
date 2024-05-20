@@ -868,7 +868,7 @@ export class HTML {
         }
         return skData || pkData || storage;
     }
-    static [commands.register](name, factoryFunction, config, thisArg, ...args) {
+    static [commands.register](name, factoryFunction, config = {}, thisArg, ...args) {
         const storage = HTML[commands.createStorage](commands.register, name);
         storage.set('factory', factoryFunction);
         storage.set('config', config);
