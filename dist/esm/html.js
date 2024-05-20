@@ -76,6 +76,7 @@ export const commands = {
     parseShadow: Symbol.for(`${prefix}.init.shadow.params`),
     createStorage: Symbol.for(`${prefix}.global.storage.key`),
     register: Symbol.for(`${prefix}.factory.element`),
+    registered: Symbol.for(`${prefix}.list.factory.elements`),
     define: Symbol.for(`${prefix}.define.webcomponent`), // todo: implement this
     additionalFunctions: Symbol.for(`${prefix}.result.prototype`),
     prefix,
@@ -874,6 +875,12 @@ export class HTML {
         storage.set('config', config);
         storage.set('thisArg', thisArg);
         storage.set('args', args);
+    }
+    static *[commands.registered]() {
+        const storage = HTML[commands.createStorage](commands.register);
+        for (const [elementName, metadata] of storage.entries()) {
+            yield [elementName, metadata];
+        }
     }
 }
 // Duplicates the Function.prototype object so we don't affect it

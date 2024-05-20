@@ -5,6 +5,7 @@ export namespace commands {
     export let parseShadow: symbol;
     export let createStorage: symbol;
     export let register: symbol;
+    export let registered: symbol;
     export let define: symbol;
     export let additionalFunctions: symbol;
     export { prefix };
