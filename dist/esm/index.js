@@ -1,1 +1,1 @@
-export * from './html.js';
+export { HTML, commands } from './html.js';

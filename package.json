@@ -1,6 +1,6 @@
 {
   "author": "Brielle Harrison <nyteshade at gmail.com>",
-  "browser": "@nejs/html.bundle.2.1.0.js",
+  "browser": "@nejs/html.bundle.2.1.1.js",
   "description": "A very convenient way to generate HTML elements using JavaScript",
   "devDependencies": {
     "@nejs/extension": "^2.20.0",
@@ -34,10 +34,13 @@
     "check": "tsc --noEmit",
     "clean": "bin/clean",
     "module": "bin/build",
+    "dist.patch": "bin/version patch bump && bin/clean && bin/build && bin/esbuild && vitest",
+    "dist.minor": "bin/version minor bump && bin/clean && bin/build && bin/esbuild && vitest",
+    "dist.major": "bin/version major bump && bin/clean && bin/build && bin/esbuild && vitest",
     "test": "vitest"
   },
   "source": "src/index.js",
   "type": "module",
   "types": "dist/esm/index.d.ts",
-  "version": "2.1.0"
+  "version": "2.1.1"
 }
