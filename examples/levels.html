@@ -43,21 +43,10 @@
 
     <script type="module">
       const cdn = 'https://cdn.jsdelivr.net';
-      const bundlePath = '/gh/nyteshade/ne-html/dist/@nejs';
-      const url = new URL(`${bundlePath}/html.bundle.latest.js`, cdn);
+      const bundlePath = '/gh/nyteshade/ne-html/dist/esm';
+      const url = new URL(`${bundlePath}/index.js`, cdn);
       console.log(url.href);
       const {HTML, commands, Levels} = await import(url.href);
-
-      HTML[commands.register]('NELowLevel', Levels, { preset: 'low', signal: true, noBackground: true });
-      HTML[commands.register]('NEMediumLevel', Levels, { preset: 'medium', signal: true, noBackground: true });
-      HTML[commands.register]('NEHighLevel', Levels, { preset: 'high', signal: true, noBackground: true });
-
-      HTML.NELowLevel().addTo('#target1');
-      HTML.NELowLevel(null, { noBackground: false }).addTo('#target1');
-      HTML.NEMediumLevel().addTo('#target1');
-      HTML.NEMediumLevel(null, { noBackground: false }).addTo('#target1');
-      HTML.NEHighLevel().addTo('#target1');
-      HTML.NEHighLevel(null, { noBackground: false }).addTo('#target1');
 
       HTML.NELowLevel('Low').addTo('#target2');
       HTML.NELowLevel('Low', { noBackground: false }).addTo('#target2');

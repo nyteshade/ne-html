@@ -284,19 +284,8 @@ function Levels(options, argLabel = undefined, argStyles) {
     return element;
 }
 exports.Levels = Levels;
-// HTML[commands.register]('NELowSignalLevel',
-//   Levels,
-//   { preset: 'low', signal: true, noBackground: true }
-// );
-// HTML[commands.register]('NEMediumSignalLevel',
-//   Levels,
-//   { preset: 'medium', signal: true, noBackground: true }
-// );
-// HTML[commands.register]('NEHighSignalLevel',
-//   Levels,
-//   { preset: 'high', signal: true, noBackground: true }
-// );
-// HTML[commands.register]('NELevel',
-//   Levels,
-//   { percent: 0 }
-// );
+;
+html_js_1.HTML[html_js_1.commands.register]('NELowSignalLevel', Levels, { preset: 'low', signal: true, noBackground: true });
+html_js_1.HTML[html_js_1.commands.register]('NEMediumSignalLevel', Levels, { preset: 'medium', signal: true, noBackground: true });
+html_js_1.HTML[html_js_1.commands.register]('NEHighSignalLevel', Levels, { preset: 'high', signal: true, noBackground: true });
+html_js_1.HTML[html_js_1.commands.register]('NELevel', Levels, { percent: 0 });
