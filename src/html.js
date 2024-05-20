@@ -81,6 +81,7 @@ export const commands = {
   createStorage: Symbol.for(`${prefix}.global.storage.key`),
 
   register: Symbol.for(`${prefix}.factory.element`),
+  registered: Symbol.for(`${prefix}.list.factory.elements`),
   define: Symbol.for(`${prefix}.define.webcomponent`), // todo: implement this
 
   additionalFunctions: Symbol.for(`${prefix}.result.prototype`),
@@ -986,6 +987,16 @@ export class HTML {
     storage.set('thisArg', thisArg);
     storage.set('args', args);
   }
+
+  static *[commands.registered]() {
+    const storage = HTML[commands.createStorage](
+      commands.register,
+    );
+
+    for (const [elementName, metadata] of storage.entries()) {
+      yield [elementName, metadata];
+    }
+  }
 }
 
 // Duplicates the Function.prototype object so we don't affect it
@@ -1059,7 +1070,7 @@ HTML[commands.register]('script:src', function scriptSource(
     attributes,
     type: 'application/javascript'
   });
-}, {})
+}, {});
 
 HTML[commands.register]('script:module', function scriptSource(
   config,
@@ -1107,7 +1118,7 @@ HTML[commands.register]('script:module', function scriptSource(
     attributes,
     type: 'module'
   });
-}, {})
+}, {});
 
 HTML[commands.register]('link:rel', function scriptSource(
   config,
@@ -1127,6 +1138,6 @@ HTML[commands.register]('link:rel', function scriptSource(
     rel,
     attributes,
   });
-}, {})
+}, {});
 
 export default HTML;
