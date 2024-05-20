@@ -219,4 +219,4 @@ ${a||""}`),u.script({content:a,attributes:r,type:"module"})},{});u[l.register]("
           }
         }
       `),u.article([u.figure({class:`levels ${n}`,children:[u.figure({class:"level"})].concat(r?[u.figure({class:"level"}),u.figure({class:"level"})]:[])})])]}),[m,v]=["article",".levels"].map(f=>y.shadowRoot.querySelector(f));if(m&&o&&typeof o=="string"&&m.append(u.span({content:o,class:"label"})),v){let f=[!!s&&"solid",!!r&&"signal-aspect",!!a&&"no-background"].filter(k=>k);v.classList.add(...f)}return Object.defineProperty(y,"setLevel",{value(f){r?(v[0].style.display=f===0?"none":"",v[1].style.display=f<=66?"none":"",v[2].style.display=f<100?"none":""):this.cssVar.set("level-height",`${f}%`)},enumerable:!1,configurable:!0,writable:!0}),c&&y.setLevel(c),y}u[l.register]("NELowSignalLevel",S,{preset:"low",signal:!0,noBackground:!0});u[l.register]("NEMediumSignalLevel",S,{preset:"medium",signal:!0,noBackground:!0});u[l.register]("NEHighSignalLevel",S,{preset:"high",signal:!0,noBackground:!0});u[l.register]("NELevel",S,{percent:0});return M(C);})();
-//# sourceMappingURL=html.bundle.2.2.0.js.map
+//# sourceMappingURL=html.bundle.2.2.1.js.map
