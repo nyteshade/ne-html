@@ -1,12 +1,16 @@
 import { HTML, commands } from '../html.js';
 export function Levels(options, argLabel = undefined, argStyles) {
     const opportunities = ['low', 'medium', 'high'];
-    let { preset, solid, label, signal, noBackground } = options;
+    let { preset, solid, label, signal, noBackground, percent } = options;
     preset = argStyles?.preset ?? preset;
     solid = argStyles?.solid ?? solid;
     label = argLabel ?? label;
     signal = argStyles?.signal ?? signal;
     noBackground = argStyles?.noBackground ?? noBackground;
+    if (typeof percent !== 'undefined') {
+        preset = undefined;
+        percent = Math.min(100, Math.max(0, parseInt(percent)));
+    }
     const levelSheet = new CSSStyleSheet();
     const elemSize = { w: 12, h: 32 };
     const boxSize = { w: signal ? elemSize.w * 3 : elemSize.w };
@@ -271,5 +275,8 @@ export function Levels(options, argLabel = undefined, argStyles) {
         configurable: true,
         writable: true
     });
+    if (percent) {
+        element.setLevel(percent);
+    }
     return element;
 }

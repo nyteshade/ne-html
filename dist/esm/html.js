@@ -912,4 +912,66 @@ const proxiedProto = new Proxy(prototype, {
 // about the HTML class itself, in spite of it having a custom
 // proxy in its prototype chain.
 Object.setPrototypeOf(HTML, proxiedProto);
+// Register some basics
+HTML[commands.register]('script:src', function scriptSource(config, source, attrs) {
+    if (!source && typeof source !== 'string') {
+        throw new SyntaxError('HTML["script:src"] must have a source param');
+    }
+    const src = String(source);
+    const attributes = attrs ?? {};
+    return HTML.script({
+        src,
+        attributes,
+        type: 'application/javascript'
+    });
+}, {});
+HTML[commands.register]('script:module', function scriptSource(config, srcOrImports, initialContent, attrs) {
+    let src = undefined;
+    let imports = [];
+    if (srcOrImports) {
+        if (Array.isArray(srcOrImports)) {
+            imports = srcOrImports.map(item => {
+                if (Array.isArray(item)) {
+                    const [nameOrNames, from] = item;
+                    let names = nameOrNames;
+                    if (!Array.isArray(nameOrNames)) {
+                        names = [String(nameOrNames)];
+                    }
+                    return `import { ${names.join(', ')} } from '${from}';`;
+                }
+                else {
+                    return `import * from '${String(item)}';`;
+                }
+            });
+        }
+        else if (typeof srcOrImports === 'string') {
+            src = srcOrImports;
+        }
+    }
+    const attributes = attrs ?? {};
+    let content = initialContent;
+    if (src) {
+        attributes.src = src;
+    }
+    if (imports.length) {
+        content = `${imports.join('\n')}\n\n${content || ''}`;
+    }
+    return HTML.script({
+        content,
+        attributes,
+        type: 'module'
+    });
+}, {});
+HTML[commands.register]('link:rel', function scriptSource(config, url, rel = "stylesheet", attrs) {
+    if (!url && typeof url !== 'string') {
+        throw new SyntaxError('HTML["link:rel"] must have a url param');
+    }
+    const href = String(url);
+    const attributes = attrs ?? {};
+    return HTML.link({
+        href,
+        rel,
+        attributes,
+    });
+}, {});
 export default HTML;
