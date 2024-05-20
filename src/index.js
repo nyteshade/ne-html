@@ -1,3 +1,6 @@
+export {HTML, commands} from './html.js';
+export {Levels} from './factories/levels.js';
+
 import { HTML, commands } from './html.js';
 import { Levels } from './factories/levels.js';
 
@@ -20,6 +23,3 @@ HTML[commands.register]('NELevel',
   Levels,
   { percent: 0 }
 );
-
-export {HTML, commands} from './html.js';
-export {Levels} from './factories/levels.js';
