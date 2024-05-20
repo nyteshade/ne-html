@@ -192,7 +192,7 @@ class HTML {
         const options = HTML[exports.commands.parse](...arguments);
         // Shorthand for the parsed.useDocument value. Should never be
         // null or undefined.
-        const doc = options?.useDocument ?? document;
+        const doc = options?.useDocument ?? top.window.document;
         // Reusable style sheet used and updated for all instances of the
         // HTMLElement instances created. These are used specifically
         // with the `cssVar` property `.get()` and `.set()` methods.
@@ -736,10 +736,12 @@ class HTML {
         }
         return skData || pkData || storage;
     }
-    static [exports.commands.register](name, factoryFunction, config) {
+    static [exports.commands.register](name, factoryFunction, config, thisArg, ...args) {
         const storage = HTML[exports.commands.createStorage](exports.commands.register, name);
         storage.set('factory', factoryFunction);
         storage.set('config', config);
+        storage.set('thisArg', thisArg);
+        storage.set('args', args);
     }
 }
 exports.HTML = HTML;
@@ -752,9 +754,20 @@ const proxiedProto = new Proxy(prototype, {
         if (factoryElements) {
             const factory = factoryElements.get('factory');
             const config = factoryElements.get('config');
+            const thisArg = factoryElements.get('thisArg');
+            const args = factoryElements.get('args') ?? [];
             if (typeof factory === 'function' &&
                 typeof config === 'object') {
-                return (() => factory(config));
+                if (thisArg &&
+                    !factory.prototype &&
+                    factory.toString().includes('=>')) {
+                    console.warn([
+                        `HTML[${property}] is likely a big arrow function and`,
+                        `it was registered with a \`thisArg\` value. This`,
+                        `will not work as expected. You have been warned!`,
+                    ].join(' '));
+                }
+                return ((...args) => factory.call(thisArg, config, ...args));
             }
         }
         if (typeof property === 'string' && property !== 'create') {
