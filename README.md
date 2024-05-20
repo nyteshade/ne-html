@@ -643,7 +643,8 @@ const shadyDiv = HTML.div({shadow: {
 
 ## <a name="changelog">Changelog</a>
 _[↩︎ Back to top](#toc)_
-
+ * **2.4.0** - Added unit tests for `HTML.Levels` and significantly
+   improved documentation.
  * **2.3.0** - Added in the `HTML.Levels` composite element both
    as an example as well as the first use case upon which this
    library was heavily tested.
