@@ -1,3 +1,7 @@
+const {HTML, commands} = await import(
+  'https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/esm/html.js'
+);
+
 export function Levels(
   options,
   argPreset = 'low',

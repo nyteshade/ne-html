@@ -11,8 +11,11 @@
       HTML[commands.register]('NEMediumLevel', Levels, { preset: 'medium' });
       HTML[commands.register]('NEHighLevel', Levels, { preset: 'high' });
 
+      HTML.NELevel().addToBody();
+      HTML.NELowLevel().addToBody();
+      HTML.NEMediumLevel().addToBody();
+      HTML.NEHighLevel().addToBody();
 
-      Object.assign(globalThis, {HTML, e1, e2, e3});
     </script>
   </body>
 </html>
