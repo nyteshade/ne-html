@@ -76,7 +76,7 @@ export const commands = {
     parseShadow: Symbol.for(`${prefix}.init.shadow.params`),
     createStorage: Symbol.for(`${prefix}.global.storage.key`),
     register: Symbol.for(`${prefix}.factory.element`),
-    define: Symbol.for(`${prefix}.define.webcomponent`),
+    define: Symbol.for(`${prefix}.define.webcomponent`), // todo: implement this
     additionalFunctions: Symbol.for(`${prefix}.result.prototype`),
     prefix,
 };
@@ -283,102 +283,16 @@ export class HTML {
         if (isObj(options?.dataset)) {
             Object.assign(element.dataset, options.dataset);
         }
-        Object.defineProperties(element, {
-            identifier: {
-                enumerable: false,
-                configurable: false,
-                writable: true,
-                value: `#${Math.random().toString(36).slice(2)}`,
-            },
-            cssVar: { enumerable: false, value: {
-                    /**
-                     * Retrieves the value of a CSS variable from the specified
-                     * layer or the default document or shadow root.
-                     *
-                     * @param {string} variableSansLeadingDashes - The CSS
-                     * variable name without the leading '--'.
-                     * @param {Element|ShadowRoot|Document} [layer] - The context
-                     * from which to retrieve the CSS variable. If not specified,
-                     * defaults to the element's shadowRoot or the document.
-                     * @returns {string|null} The value of the CSS variable,
-                     * or null if not found.
-                     * @throws {Error} If no root is found or if the variable
-                     * name is invalid.
-                     * @example
-                     * // Assuming there is a CSS variable `--main-color`
-                     * // defined in the document:
-                     * const color = element.cssVar.get('main-color');
-                     * console.log(color); // Outputs the value of `--main-color`
-                     */
-                    get(variableSansLeadingDashes, layer) {
-                        const key = `--${variableSansLeadingDashes}`;
-                        const root = layer ? layer : (element?.shadowRoot || doc);
-                        if (!root || !key.startsWith('--')) {
-                            throw new Error([
-                                'Invalid arguments: root and valid CSS variable name',
-                                'are required.'
-                            ].join(' '));
-                        }
-                        const el = root?.host ?? document.documentElement;
-                        const styles = getComputedStyle(el);
-                        const value = styles.getPropertyValue(key).trim();
-                        return value || null;
-                    },
-                    /**
-                     * Sets a CSS variable on the specified layer or the default
-                     * document or shadow root.
-                     *
-                     * This method dynamically determines the appropriate CSS
-                     * layer (`:host` for shadow DOM, `:root` for the document)
-                     * and applies the CSS variable. If the shadow DOM or
-                     * document supports `adoptedStyleSheets`, it uses them;
-                     * otherwise, it falls back to creating or updating a
-                     * `<style>` element in the document head.
-                     *
-                     * @param {string} variableSansLeadingDashes - The CSS
-                     * variable name without the leading '--'.
-                     * @param {string} value - The value to set for the CSS
-                     * variable.
-                     * @param {Element|ShadowRoot|Document} [layer] - The context
-                     * in which to set the CSS variable. Defaults to the
-                     * element's shadowRoot or the document.
-                     *
-                     * @example
-                     * // Set the CSS variable `--main-color` to `blue` in the
-                     * // document:
-                     * element.cssVar.set('main-color', 'blue');
-                     *
-                     * @example
-                     * // Set the CSS variable `--main-color` to `blue` in a
-                     * // specific shadow root:
-                     * element.cssVar.set('main-color', 'blue', someShadowRoot);
-                     */
-                    set(variableSansLeadingDashes, value, layer) {
-                        const root = layer ? layer : (element?.shadowRoot || doc);
-                        const key = `--${variableSansLeadingDashes}`;
-                        const cssLayer = element.shadowRoot ? ':host' : ':root';
-                        const style = `${cssLayer} { ${key}: ${value}; }`;
-                        reusableStyleSheet.replaceSync(style);
-                        if (root?.adoptedStyleSheets) {
-                            root.adoptedStyleSheets = [reusableStyleSheet];
-                        }
-                        else {
-                            if (!reusableStyleElement) {
-                                reusableStyleElement = HTML.style({
-                                    id: 'html_reusable_style_sheet',
-                                    content: style
-                                });
-                                document.head.appendChild(reusableStyleElement);
-                            }
-                            else {
-                                reusableStyleElement
-                                    .textContent = [...reusableStyleSheet]
-                                    .map(rule => rule.cssText)
-                                    .join(' ');
-                            }
-                        }
-                    }
-                } }
+        // Apply some additional functions to the element post creation
+        // that can make life a bit easier.
+        HTML[commands.additionalFunctions]({
+            element, reusableStyleSheet, reusableStyleElement
+        });
+        Object.defineProperty(element, 'identifier', {
+            enumerable: false,
+            configurable: false,
+            writable: true,
+            value: `#${Math.random().toString(36).slice(2)}`,
         });
         return element;
     }
@@ -641,6 +555,27 @@ export class HTML {
         }
         return parsed;
     }
+    /**
+     * Parses the provided tag name and shadow DOM options to
+     * determine if a shadow DOM can be attached to the specified
+     * element. It validates the element against a set of criteria
+     * including tag name and the presence of a hyphen, which is
+     * required for custom elements that support shadow DOM.
+     *
+     * @param {string} tagName - The name of the tag to which the
+     * shadow DOM might be attached.
+     * @param {Object} shadowDOMOptions - Configuration options for
+     * the shadow DOM, including whether to force attachment with
+     * `tryAnyhow`.
+     * @returns {Object|undefined} The normalized shadow DOM options
+     * if the element is valid, otherwise `undefined`.
+     *
+     * @example
+     * // To parse shadow DOM options for a custom element:
+     * const shadowOptions = HTML[commands.parseShadow](
+     *  'my-custom-element', { tryAnyhow: false }
+     * );
+     */
     static [commands.parseShadow](tagName, shadowDOMOptions) {
         if (!shadowDOMOptions) {
             return undefined;
@@ -706,7 +641,207 @@ export class HTML {
         }
         return _shadow;
     }
-    static [commands.createStorage](forPrimaryKey, forSubKey, create = true) {
+    /**
+     * Defines additional functions on an element, particularly for
+     * managing CSS variables through a dynamic interface. This
+     * method enhances an element with methods to get and set CSS
+     * variables efficiently, using either a shadow DOM or the global
+     * document.
+     *
+     * @param {Object} config - The configuration object for
+     * additional functions.
+     * @param {Element} config.element - The DOM element to which the
+     * functions will be attached.
+     * @param {CSSStyleSheet} [config.reusableStyleSheet] - A reusable
+     * style sheet for efficient style management. Optional.
+     * @param {HTMLStyleElement} [config.reusableStyleElement] - A
+     * style element that can be reused for dynamic style changes.
+     * Optional.
+     * @param {Object} [config.descriptorBase] - Base configuration
+     * for property descriptors applied to the element.
+     *
+     * @example
+     * // Define additional CSS variable functions on a custom element
+     * MyCustomElement.additionalFunctions({
+     *   element: document.querySelector('#myElement'),
+     *   descriptorBase: { enumerable: true, configurable: true }
+     * });
+     */
+    static [commands.additionalFunctions]({ element, reusableStyleSheet, reusableStyleElement, descriptorBase = { enumerable: false, configurable: true }, }) {
+        Object.defineProperty(element, 'cssVar', { ...descriptorBase,
+            value: {
+                /**
+                 * Retrieves the value of a CSS variable from the specified
+                 * layer or the default document or shadow root.
+                 *
+                 * @param {string} variableSansLeadingDashes - The CSS
+                 * variable name without the leading '--'.
+                 * @param {Element|ShadowRoot|Document} [layer] - The context
+                 * from which to retrieve the CSS variable. If not specified,
+                 * defaults to the element's shadowRoot or the document.
+                 * @returns {string|null} The value of the CSS variable,
+                 * or null if not found.
+                 * @throws {Error} If no root is found or if the variable
+                 * name is invalid.
+                 * @example
+                 * // Assuming there is a CSS variable `--main-color`
+                 * // defined in the document:
+                 * const color = element.cssVar.get('main-color');
+                 * console.log(color); // Outputs the value of `--main-color`
+                 */
+                get(variableSansLeadingDashes, layer) {
+                    const key = `--${variableSansLeadingDashes}`;
+                    const root = layer ? layer : (element?.shadowRoot || doc);
+                    if (!root || !key.startsWith('--')) {
+                        throw new Error([
+                            'Invalid arguments: root and valid CSS variable name',
+                            'are required.'
+                        ].join(' '));
+                    }
+                    const el = root?.host ?? document.documentElement;
+                    const styles = getComputedStyle(el);
+                    const value = styles.getPropertyValue(key).trim();
+                    return value || null;
+                },
+                /**
+                 * Sets a CSS variable on the specified layer or the default
+                 * document or shadow root.
+                 *
+                 * This method dynamically determines the appropriate CSS
+                 * layer (`:host` for shadow DOM, `:root` for the document)
+                 * and applies the CSS variable. If the shadow DOM or
+                 * document supports `adoptedStyleSheets`, it uses them;
+                 * otherwise, it falls back to creating or updating a
+                 * `<style>` element in the document head.
+                 *
+                 * @param {string} variableSansLeadingDashes - The CSS
+                 * variable name without the leading '--'.
+                 * @param {string} value - The value to set for the CSS
+                 * variable.
+                 * @param {Element|ShadowRoot|Document} [layer] - The context
+                 * in which to set the CSS variable. Defaults to the
+                 * element's shadowRoot or the document.
+                 *
+                 * @example
+                 * // Set the CSS variable `--main-color` to `blue` in the
+                 * // document:
+                 * element.cssVar.set('main-color', 'blue');
+                 *
+                 * @example
+                 * // Set the CSS variable `--main-color` to `blue` in a
+                 * // specific shadow root:
+                 * element.cssVar.set('main-color', 'blue', someShadowRoot);
+                 */
+                set(variableSansLeadingDashes, value, layer) {
+                    const root = layer ? layer : (element?.shadowRoot || doc);
+                    const key = `--${variableSansLeadingDashes}`;
+                    const cssLayer = element.shadowRoot ? ':host' : ':root';
+                    const style = `${cssLayer} { ${key}: ${value}; }`;
+                    reusableStyleSheet.replaceSync(style);
+                    if (root?.adoptedStyleSheets) {
+                        root.adoptedStyleSheets = [reusableStyleSheet];
+                    }
+                    else {
+                        if (!reusableStyleElement) {
+                            reusableStyleElement = HTML.style({
+                                id: 'html_reusable_style_sheet',
+                                content: style
+                            });
+                            document.head.appendChild(reusableStyleElement);
+                        }
+                        else {
+                            reusableStyleElement
+                                .textContent = [...reusableStyleSheet]
+                                .map(rule => rule.cssText)
+                                .join(' ');
+                        }
+                    }
+                }
+            } });
+        Object.defineProperty(element, 'addTo', { ...descriptorBase,
+            /**
+             * As the name of the function indicates, it adds this instance
+             * of HTMLElement to an element specified by the supplied
+             * CSS selector. If the `element` exists in the `document`, then
+             * an attempt to insert this instance into that `element`.
+             *
+             * @param {string} selector - the CSS selector supplied to
+             * denote the element within which this instance of HTMLElement
+             * is to be inserted.
+             * @param {Document} doc - an alternate document object with a
+             * `<body>` tag you wish to use other than `top.window.document`
+             * @returns {boolean} `true` if the insertion was successful,
+             * `false` otherwise.
+             */
+            value: function addTo(selector, doc = top.window.document) {
+                const located = doc.querySelector(selector);
+                if (located?.append && typeof located.append === 'function') {
+                    located.append(this);
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        });
+        Object.defineProperty(element, 'addToBody', { ...descriptorBase,
+            /**
+             * As the name of the function indicates, it adds this instance
+             * of HTMLElement to the document.body. It's a small helper to
+             * reduce typing.
+             *
+             * @param {Document} doc - an alternate document object with a
+             * `<body>` tag you wish to use other than `top.window.document`
+             * @returns {boolean} `true` if the insertion was successful,
+             * `false` otherwise.
+             */
+            value: function addToBody(doc = top.window.document) {
+                doc?.body?.append(this);
+                return doc?.body?.contains(this);
+            }
+        });
+        Object.defineProperty(element, 'addToHead', { ...descriptorBase,
+            /**
+             * Adds this instance of HTMLElement to the document.head.
+             * It's a small helper to reduce typing.
+             *
+             * @param {Document} doc - an alternate document object with a
+             * `<head>` tag you wish to use other than `top.window.document`
+             * @returns {boolean} true if the insertion was successful,
+             * false otherwise.
+             */
+            value: function addToBody(doc = top.window.document) {
+                doc?.head?.append(this);
+                return doc?.head?.contains(this);
+            }
+        });
+    }
+    /**
+     * Creates or accesses a storage map for managing primary and sub
+     * keys. This method ensures that a unique storage is available
+     * globally for specified keys, allowing for structured data
+     * storage across different components or modules.
+     *
+     * @param {string} forPrimaryKey - The primary key under which to
+     * store or retrieve data.
+     * @param {string} forSubKey - The sub key under which to store or
+     * retrieve data within the primary key's map.
+     * @param {boolean} [create=true] - Determines whether to create
+     * a new storage map if one does not exist for the provided keys.
+     * @returns {Map} Returns the storage map associated with the sub
+     * key, or the primary key if no sub key is provided, or the
+     * entire storage if neither key is provided.
+     *
+     * @example
+     * // Create or access storage for a primary key 'userSettings'
+     * // and sub key 'theme'
+     * const themeStorage = HTML[commands.createStorage](
+     *   'userSettings', 'theme'
+     * );
+     * // Use the storage to set a new theme
+     * themeStorage.set('color', 'dark');
+     */
+    static [commands.createStorage](forPrimaryKey, forSubKey = null, create = true) {
         let _present = Reflect.has(globalThis, commands.createStorage);
         const [hasStorage, storage] = [
             _present,
@@ -722,14 +857,14 @@ export class HTML {
         ];
         const _skTmp = create && new Map() || undefined;
         const [hasSkData, skData] = [
-            storage.has(forSubKey),
-            forSubKey && (storage.get(forSubKey) ?? _skTmp)
+            pkData?.has(forSubKey),
+            forSubKey && (pkData?.get(forSubKey) ?? _skTmp)
         ];
         if (!hasPkData && pkData) {
             storage.set(forPrimaryKey, pkData);
         }
         if (!hasSkData && skData) {
-            storage.set(forSubKey, skData);
+            pkData?.set(forSubKey, skData);
         }
         return skData || pkData || storage;
     }
