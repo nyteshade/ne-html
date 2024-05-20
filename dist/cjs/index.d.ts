@@ -1,2 +1,2 @@
-export { Levels } from "./factories/levels.js";
 export { HTML, commands } from "./html.js";
+export { Levels, registerLevels } from "./factories/levels.js";

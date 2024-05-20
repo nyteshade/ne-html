@@ -43,14 +43,16 @@
 
     <script type="module">
       const cdn = 'https://cdn.jsdelivr.net';
-      const bundlePath = '/gh/nyteshade/ne-html/releases/@nejs';
-      const url = new URL(`${bundlePath}/html.bundle.2.2.1.js`, cdn);
+      const bundlePath = '/gh/nyteshade/ne-html/dist/@nejs';
+      const url = new URL(`${bundlePath}/html.bundle.latest.js`, cdn);
       console.log(url.href);
-      let {HTML, commands, Levels} = await import(url.href);
+      let {HTML, commands, Levels, registerLevels} = await import(url.href);
       if (!HTML && globalThis?.nejs?.html) {
-        ({HTML, commands, Levels} = globalThis.nejs.html);
+        ({HTML, commands, Levels, registerLevels} = globalThis.nejs.html);
       }
-      Object.assign(globalThis, { HTML, commands, Levels });
+      Object.assign(globalThis, { HTML, commands, Levels, registerLevels });
+
+      registerLevels();
 
       let target = '#target1';
       let base = { noBackground: true };

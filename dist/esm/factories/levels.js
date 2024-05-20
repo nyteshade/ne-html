@@ -284,9 +284,9 @@ function generateCSS(elemSize) {
     }
   `;
 }
-(function (HTML, commands) {
+export const registerLevels = function (HTML, commands) {
     HTML[commands.register]('NELowSignalLevel', Levels, { preset: 'low', signal: true, noBackground: true });
     HTML[commands.register]('NEMediumSignalLevel', Levels, { preset: 'medium', signal: true, noBackground: true });
     HTML[commands.register]('NEHighSignalLevel', Levels, { preset: 'high', signal: true, noBackground: true });
     HTML[commands.register]('NELevel', Levels, { percent: 0 });
-})(HTML, commands);
+}.bind(undefined, HTML, commands);

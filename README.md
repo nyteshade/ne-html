@@ -27,7 +27,21 @@ like webcomponents.
 Finally, there is support for attaching a shadowDOM to your created
 elements and inserting other elements quickly and easily.
 
-## Installing
+## <a name="toc">Table of Contents</a>
+
+ * [Installing](#installing)
+ * [Getting Started](#getting-started)
+ * [API](#api)
+ * [Proxy Notes](#proxy-notes)
+ * [Command Symbols](#proxy-commands)
+ * [Composite Elements](#composite-elements)
+ * [Best Practices](#best-practices)
+ * [ShadowDOM](#shadowdom)
+ * [JSDelivr](#using-jsdelivr)
+ * [Change Log](#changelog)
+
+## <a name="installing">Installing</a>
+_[↩︎ Back to top](#toc)_
 
 Install to your npm project using
 
@@ -38,7 +52,63 @@ npm i @nejs/html
 Or if you want to directly use it on a webpage, see the jsdelivr
 section [below](#using-jsdelivr).
 
-## Getting Started
+## <a name="using-jsdelivr">Using jsdelivr cdn</a>
+_[↩︎ Back to top](#toc)_
+
+JS Delivr makes it very easy to grab a version of the library right from the
+browser. To fetch the latest ESM module version you can write some code like
+the following and add it your code
+
+```js
+const {
+  HTML,
+  commands,
+} = await import (
+  'https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/esm/html.js'
+);
+```
+
+Or in non ESM environments, the script can be added using a script tag, which
+will create the `var nejs_html` which will have the object properties `HTML`
+and `commands` exported.
+
+```html
+<script type="application/javascript" src="https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/@nejs/html.bundle.latest.js"></script>
+```
+
+If you would prefer to create and append the script tag using JavaScript, here
+is a nice little pasteable script.
+
+```js
+async function nsJsHtmlScript(useDocument) {
+  const doc = useDocument ?? top.document;
+  const deferred = { promise: undefined };
+  const jsDelivrBase = 'https://cdn.jsdelivr.net';
+  const url = new URL(
+    '/gh/nyteshade/ne-html/dist/@nejs/html.bundle.latest.js',
+    jsDelivrBase
+  );
+
+  deferred.promise = new Promise((resolve, reject) => {
+    Object.assign(deferred, { resolve, reject })
+  })
+
+  const scriptTag = document.createElement('script');
+  scriptTag.setAttribute('type', 'application/javascript');
+  scriptTag.setAttribute('src', url.href);
+  scriptTag.onload = function() {
+    deferred.resolve(globalThis?.nejs?.html);
+  }
+
+  doc.body.append(scriptTag);
+  return deferred.promise;
+}
+
+const { HTML, commands } = await nsJsHtmlScript();
+```
+
+## <a name="getting-started">Getting Started</a>
+_[↩︎ Back to top](#toc)_
 
 In its base form, the syntax looks a bit like
 this:
@@ -120,13 +190,14 @@ const preference2 = HTML.div({
 });
 ```
 
-## API
+## <a name="api">API</a>
+_[↩︎ Back to top](#toc)_
 
 The `HTML.create()` method is the primary interface. As hinted above,
 you can use the tag name as a property off of HTML, but it is actually
 a proxied shortcut. It also uses the `HTML.create()` method.
 
-**HTML.create()**
+**<a name="api-html-create">HTML.create()</a>**
 
 Creates an HTML element based on specified options, applying
 attributes, styles, content, and potentially a shadow DOM with
@@ -141,7 +212,8 @@ with more values. This latter format provides more flexibility
 and some helper values that translate automatically into their
 expected locations on the created element.
 
-_Ordered Parameters (only name is required)_
+**_Ordered Parameters (only name is required)_**
+
   1. **`name`** - the tag name
   2. **`content`** - optional string of content for the tag
   3. **`style`** - an object with style properties that will be
@@ -170,7 +242,8 @@ _Ordered Parameters (only name is required)_
      be overridden individually or as a whole by specifying
      each and their new value in `{shadow: {options: { ... }}}
 
-_Object Parameters (only name is required)_
+**_Object Parameters (only name is required)_**
+
   1. **`name`**
   2. **`config`**
      The config can process the above ordered properties when given
@@ -225,7 +298,99 @@ const element = HTML.div([
 // </div>
 ```
 
-## A note on the proxy in the prototype (what?!)
+**<a name="api-html-register">HTML[commands.register]</a>**
+<br><a>_↩︎ Back to_</a> ◌ _[ Top](#toc)_ ◌ _[API](#api)_
+
+Registers a factory function under a given name with optional 
+configuration, binding context, and additional arguments. This 
+method stores the factory function and its associated data in a 
+centralized storage, allowing for retrieval and utilization 
+elsewhere in the application. For read only or otherwise immutable 
+components, the factories can be fairly simply. Simply stamping 
+down a new component as one might expect.
+ 
+For composite components that support dynamism in their creation
+a more complex factory is often required, but also engenders 
+greater reusability. *[See example](#composite-elements)*
+ 
+ * **{** *string* **}** **name -** The unique name to register the factory 
+   function under.
+ * **{** *Function* **}** **factoryFunction -** The factory function to 
+   register.
+ * **{** *Object* **}** **[config={}] -** Optional configuration object for 
+   the factory function.
+ * **{** *any* **}** **thisArg -** The value of `this` to be used when 
+   invoking the factory function.
+ * **{** *...any* **}** **args -** Additional arguments to pass to the 
+   factory function upon invocation.
+   
+```js
+HTML[commands.register](
+  'SmRedButton', 
+  buttonFactory, 
+  {color: 'red'}, 
+  this, 
+  'small'
+);
+
+const button = HTML.SmRedButton();
+
+// This registers a `buttonFactory` under the name 'SmRedButton'
+// with a configuration specifying the color as 'red', binds 
+// `this` for context, and passes 'small' as an argument.
+```
+
+**<a name="api-html-registered">HTML[commands.registered]</a>**
+<br><a>_↩︎ Back to_</a> ◌ _[ Top](#toc)_ ◌ _[API](#api)_
+
+Invoking the `HTML[commands.registered]()` function will return a 
+*Iterable* that can be walked or converted to an array using either 
+`[...HTML[commands.registered]()]` or `Array.from(HTML[commands.registered]())`.
+The elements inside are a set of entries, in the format: 
+
+```js
+[[registeredName, registeredMetadata]]
+```
+
+Each `registeredMetadata` is a `Map` that has at least these four keys
+registered for each composite component
+
+ * `factory` - the function that generates html elements when invoked
+ * `config` - the preset configuration that allows you to, by default, 
+   get different output from the same function under differently
+   registered names
+ * `thisArg` - an optional `this` for the `factory` function execution. 
+   *Note: if you supply a big arrow function (`() => {}`) then you will 
+   not be able to apply a `thisArg` to its execution. Use a normal 
+   function if this is a need you have.*
+ * `args` - note that arguments here are essential the first n-arguments
+   in order, but if your factory doesn't support working with configs
+   
+Effectively, when a composite element is created, this data is used like
+this:
+
+```js
+(...dynamicArgs) => factory.call(
+  thisArg, 
+  config, 
+  ...args, 
+  ...dynamicArgs
+)
+```
+
+Where `args` are the arguments at the time of registration, and 
+`dynamicArgs` are those passed into the call.
+
+```js
+const button = HTML.SmRedButton(clickHandler);
+
+// would result in an invocation similar to the following, assuming
+// you were using the example used in HTML[commands.registered]
+factory.call(thisArg, {color: 'red'}, 'small', clickHandler);
+```
+
+## <a name="proxy-notes">A note on the proxy in the prototype (what?!)</a>
+_[↩︎ Back to top](#toc)_
 
 The `HTML` class has a proxy inserted in its prototype chain. This
 proxy allows you to do the magic that is `HTML.div` instead of the
@@ -241,7 +406,8 @@ Since there is no `div` property on the `HTML` class, it considers this
 property access to evaluate to a bound version of `HTML.create` with
 the already supplied first parameter, the tag name, of `div`.
 
-### What are the `commands` symbols?
+### <a name="proxy-commands">What are the `commands` symbols?</a>
+_[↩︎ Back to top](#toc)_
 
 In some of these examples you'll see an import like
 
@@ -266,7 +432,8 @@ command.
    `HTMLElement`. While no type checking is done, failure to follow
    this pattern may result in confusion.
 
-## Composite elements
+## <a name="composite-elements">Composite elements</a>
+_[↩︎ Back to top](#toc)_
 
 Sometimes you may have created a custom element that you want to reuse,
 again without creating something like an Angular component or installing
@@ -380,7 +547,8 @@ document.body.append(...preferences);
 This is nice, neat, tidy and will feel a lot like using webcomponents,
 Angular components or React. But it will be plain JavaScript.
 
-## Best practices
+## <a name="best-practices">Best practices</a>
+_[↩︎ Back to top](#toc)_
 
 Adding this code to your project should likely be coupled with some
 definitions someplace. Something like
@@ -405,7 +573,8 @@ HTML[commands.register](
 export {HTML, commands};
 ```
 
-## A final word about the shadowDOM
+## <a name="shadowdom">A final word about the shadowDOM</a>
+_[↩︎ Back to top](#toc)_
 
 ShadowDOM elements allow you to simplify your usage of shadowRoot
 and attaching such to your elements after creation. While most of
@@ -472,63 +641,12 @@ const shadyDiv = HTML.div({shadow: {
 }})
 ```
 
-<a name="using-jsdelivr"></a>
-## Using jsdelivr cdn
+## <a name="changelog">Changelog</a>
+_[↩︎ Back to top](#toc)_
 
-JS Delivr makes it very easy to grab a version of the library right from the
-browser. To fetch the latest ESM module version you can write some code like
-the following and add it your code
-
-```js
-const {
-  HTML,
-  commands,
-} = await import (
-  'https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/esm/html.js'
-);
-```
-
-Or in non ESM environments, the script can be added using a script tag, which
-will create the `var nejs_html` which will have the object properties `HTML`
-and `commands` exported.
-
-```html
-<script type="application/javascript" src="https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/@nejs/html.bundle.latest.js"></script>
-```
-
-If you would prefer to create and append the script tag using JavaScript, here
-is a nice little pasteable script.
-
-```js
-async function nsJsHtmlScript(useDocument) {
-  const doc = useDocument ?? top.document;
-  const deferred = { promise: undefined };
-  const jsDelivrBase = 'https://cdn.jsdelivr.net';
-  const url = new URL(
-    '/gh/nyteshade/ne-html/dist/@nejs/html.bundle.latest.js',
-    jsDelivrBase
-  );
-
-  deferred.promise = new Promise((resolve, reject) => {
-    Object.assign(deferred, { resolve, reject })
-  })
-
-  const scriptTag = document.createElement('script');
-  scriptTag.setAttribute('type', 'application/javascript');
-  scriptTag.setAttribute('src', url.href);
-  scriptTag.onload = function() {
-    deferred.resolve(globalThis?.nejs?.html);
-  }
-
-  doc.body.append(scriptTag);
-  return deferred.promise;
-}
-
-const { HTML, commands } = await nsJsHtmlScript();
-```
-
-## Changelog
-
+ * **2.3.0** - Added in the `HTML.Levels` composite element both
+   as an example as well as the first use case upon which this
+   library was heavily tested.
  * **2.1.0** - Added basic `vitest` tests and allowed registered
    composite elements to have a specified thisArg and variable
    parameters making them more reusable and configurable.

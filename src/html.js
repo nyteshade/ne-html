@@ -976,7 +976,54 @@ class HTML {
     return skData || pkData || storage;
   }
 
-  static [commands.register](name, factoryFunction, config = {}, thisArg, ...args) {
+  /**
+   * Registers a factory function under a given name with optional
+   * configuration, binding context, and additional arguments. This
+   * method stores the factory function and its associated data in a
+   * centralized storage, allowing for retrieval and utilization
+   * elsewhere in the application.
+   *
+   * For read only or otherwise immutable components, the factories
+   * can be fairly simply. Simply stamping down a new component as
+   * one might expect.
+   *
+   * For composite components that support dynamism in their creation
+   * a more complex factory is often required, but also engenders
+   * greater reusability.
+   *
+   * @param {string} name - The unique name to register the factory
+   * function under.
+   * @param {Function} factoryFunction - The factory function to
+   * register.
+   * @param {Object} [config={}] - Optional configuration object for
+   * the factory function.
+   * @param {any} thisArg - The value of `this` to be used when
+   * invoking the factory function.
+   * @param {...any} args - Additional arguments to pass to the
+   * factory function upon invocation.
+   *
+   * @example
+   * HTML[commands.register](
+   *   'SmRedButton',
+   *   buttonFactory,
+   *   {color: 'red'},
+   *   this,
+   *   'small'
+   * );
+   *
+   * const button = HTML.SmRedButton();
+   *
+   * // This registers a `buttonFactory` under the name 'SmRedButton'
+   * // with a configuration specifying the color as 'red', binds
+   * // `this` for context, and passes 'small' as an argument.
+   */
+  static [commands.register](
+    name,
+    factoryFunction,
+    config = {},
+    thisArg = undefined,
+    ...args
+  ) {
     const storage = HTML[commands.createStorage](
       commands.register,
       name,
@@ -988,10 +1035,22 @@ class HTML {
     storage.set('args', args);
   }
 
+  /**
+   * Generator function that iterates over all registered component
+   * factories. This method provides access to the internal storage
+   * of registered factories, yielding each registered element's name
+   * and its associated metadata.
+   *
+   * @yields {Array} An array containing the element name and its
+   * metadata.
+   *
+   * @example
+   * for (const [name, data] of HTML[commands.registered]()) {
+   *   console.log(`Factory for ${name}:`, data);
+   * }
+   */
   static *[commands.registered]() {
-    const storage = HTML[commands.createStorage](
-      commands.register,
-    );
+    const storage = HTML[commands.createStorage](commands.register);
 
     for (const [elementName, metadata] of storage.entries()) {
       yield [elementName, metadata];
@@ -1032,7 +1091,13 @@ const proxiedProto = new Proxy(
               `will not work as expected. You have been warned!`,
             ].join(' '))
           }
-          return ((...args) => factory.call(thisArg, config, ...args));
+
+          return ((...dynamicArgs) => factory.call(
+            thisArg,
+            config,
+            ...args,
+            ...dynamicArgs
+          ));
         }
       }
 

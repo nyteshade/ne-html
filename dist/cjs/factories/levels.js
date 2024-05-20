@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Levels = void 0;
+exports.registerLevels = exports.Levels = void 0;
 const html_js_1 = require("../html.js");
 function Levels(options, argLabel = undefined, argStyles) {
     const opportunities = ['low', 'medium', 'high'];
@@ -288,9 +288,9 @@ function generateCSS(elemSize) {
     }
   `;
 }
-(function (HTML, commands) {
+exports.registerLevels = function (HTML, commands) {
     HTML[commands.register]('NELowSignalLevel', Levels, { preset: 'low', signal: true, noBackground: true });
     HTML[commands.register]('NEMediumSignalLevel', Levels, { preset: 'medium', signal: true, noBackground: true });
     HTML[commands.register]('NEHighSignalLevel', Levels, { preset: 'high', signal: true, noBackground: true });
     HTML[commands.register]('NELevel', Levels, { percent: 0 });
-})(html_js_1.HTML, html_js_1.commands);
+}.bind(undefined, html_js_1.HTML, html_js_1.commands);

@@ -301,7 +301,7 @@ function generateCSS(elemSize) {
   `
 }
 
-(function(HTML, commands) {
+export const registerLevels = function(HTML, commands) {
   HTML[commands.register]('NELowSignalLevel',
     Levels,
     { preset: 'low', signal: true, noBackground: true }
@@ -321,4 +321,4 @@ function generateCSS(elemSize) {
     Levels,
     { percent: 0 }
   );
-})(HTML, commands);
+}.bind(undefined, HTML, commands);
