@@ -43,8 +43,8 @@
 
     <script type="module">
       const cdn = 'https://cdn.jsdelivr.net';
-      const bundlePath = '/gh/nyteshade/ne-html/dist/esm';
-      const url = new URL(`${bundlePath}/index.js`, cdn);
+      const bundlePath = '/gh/nyteshade/ne-html/dist/@nejs';
+      const url = new URL(`${bundlePath}/html.bundle.latest.js`, cdn);
       console.log(url.href);
       const {HTML, commands, Levels} = await import(url.href);
 

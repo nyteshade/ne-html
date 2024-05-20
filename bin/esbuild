@@ -247,7 +247,7 @@ function getBuildConfig(strings) {
     bundle: true,
     mainFields: ["browser"],
     sourcemap: true,
-    minify: true,
+    minify: false,
     splitting: false,
     globalName: strings.iifeGlobalName && strings.iifeGlobalName !== null
       ? strings.iifeGlobalName
