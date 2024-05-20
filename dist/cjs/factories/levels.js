@@ -2,14 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Levels = void 0;
 const html_js_1 = require("../html.js");
-function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { noBackground: false, solid: false, signal: false }) {
+function Levels(options, argLabel = undefined, argStyles) {
     const opportunities = ['low', 'medium', 'high'];
-    const { preset = argPreset ?? 'high', solid = false, label = argLabel, signal = false, noBackground = false, } = options;
-    for (const [key, value] of Object.entries((argStyles || {}))) {
-        if (Reflect.has(options, key)) {
-            options[key] = !!value;
-        }
-    }
+    let { preset, solid, label, signal, noBackground } = options;
+    preset = argStyles?.preset ?? preset;
+    solid = argStyles?.solid ?? solid;
+    label = argLabel ?? label;
+    signal = argStyles?.signal ?? signal;
+    noBackground = argStyles?.noBackground ?? noBackground;
     const levelSheet = new CSSStyleSheet();
     const elemSize = { w: 12, h: 32 };
     const boxSize = { w: signal ? elemSize.w * 3 : elemSize.w };
@@ -79,44 +79,13 @@ function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { 
             &.signal-aspect {
               width: ${elemSize.w * 3}px;
 
-              &.no-background {
-                figure.level {
-                  opacity: 33%;
-                  display: unset;
-                }
-              }
-
-              &.low {
-                figure.level:nth-child(2),
-                figure.level:nth-child(3) {
-                  display: none;
-                }
-
-                &.no-background {
-                  figure.level:nth-child(2),
-                  figure.level:nth-child(3) {
-                    opacity: 33%;
-                    display: unset;
-                  }
-                }
-              }
-
-              &.medium {
-                figure.level:nth-child(3) {
-                  display: none;
-                }
-
-                &.no-background {
-                  figure.level:nth-child(3) {
-                    opacity: 33%;
-                    display: unset;
-                  }
-                }
+              figure.level {
+                opacity: 33%;
               }
 
               figure.level:nth-child(1) {
-                height: 33%;
                 left: 0;
+                height: 33%;
               }
 
               figure.level:nth-child(2) {
@@ -128,43 +97,112 @@ function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { 
                 height: 100%;
                 left: ${elemSize.w * 2}px;
               }
+
+              &.no-background {
+                filter: drop-shadow(1px 1px 1px rgb(0 0 0 /50%));
+
+                figure.level {
+                  opacity: 33%;
+                  display: unset !important;
+                }
+
+                &.low {
+                  figure.level:nth-child(1) {
+                    height: 33%;
+                    opacity: 100%;
+                  }
+                }
+
+                &.medium {
+                  figure.level:nth-child(1),
+                  figure.level:nth-child(2) {
+                    opacity: 100%;
+                  }
+                }
+
+                &.high {
+                  figure.level:nth-child(1),
+                  figure.level:nth-child(2),
+                  figure.level:nth-child(3) {
+                    opacity: 100%;
+                  }
+                }
+              }
+
+              &.solid {
+                figure.level:nth-child(1) {
+                  background-image: unset;
+                  background-color: var(--low-color);
+                }
+                figure.level:nth-child(2) {
+                  background-image: unset;
+                  background-color: var(--medium-color);
+                }
+                figure.level:nth-child(3) {
+                  background-image: unset;
+                  background-color: var(--high-color);
+                }
+              }
+
+              &.low {
+                figure.level:nth-child(1) {opacity: 100%;}
+              }
+
+              &.medium {
+                figure.level:nth-child(1),
+                figure.level:nth-child(2) {opacity: 100%;}
+              }
+
+              &.high {
+                figure.level:nth-child(1),
+                figure.level:nth-child(2),
+                figure.level:nth-child(3) {opacity: 100%;}
+              }
             }
 
             &.low {
-              figure.level:nth-child(1) {
+              figure.level {
                 height: 33%;
                 left: 0;
+              }
+
+              &.solid {
+                figure.level:only-child,
+                figure.level:nth-child(1) {
+                  background-image: unset !important;
+                  background-color: var(--low-color);
+                }
               }
             }
 
             &.medium {
-              figure.level:nth-child(1) {
+              figure.level {
                 height: 66%;
                 left: 0
+              }
+
+              &.solid {
+                figure.level:only-child,
+                figure.level:nth-child(2) {
+                  background-image: unset !important;
+                  background-color: var(--medium-color);
+                }
               }
             }
 
             &.high {
-              figure.level:nth-child(1) {
+              figure.level {
                 height: 100%;
                 left: 0
               }
-            }
 
-
-            &.low.solid figure.level {
-              background-image: unset !important;
-              background-color: var(--low-color);
-            }
-
-            &.medium.solid figure.level {
-              background-image: unset !important;
-              background-color: var(--high-color);
-            }
-
-            &.high.solid figure.level {
-              background-image: unset !important;
-              background-color: var(--high-color);
+              &.solid {
+                figure.level:only-child,
+                figure.level:nth-child(3) {
+                  background-image: unset !important;
+                  background-color: var(--high-color);
+                }
+              }
             }
 
             figure.level {

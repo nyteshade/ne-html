@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body > section[id] {
+        margin-bottom: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="target1">
+      <b>Levels - No label - Signal Aspect</b><br>
+    </section>
+
+    <section id="target2">
+      <b>Levels - Preset Label - Signal Aspect</b><br>
+    </section>
+
+    <hr>
+
+    <section id="target3">
+      <b>Levels - No label - No Background</b><br>
+    </section>
+
+    <section id="target4">
+      <b>Levels - Preset Label - No Background</b><br>
+    </section>
+
+    <hr>
+
+    <section id="target5">
+      <b>Levels - Solid - No label</b><br>
+    </section>
+
+    <section id="target6">
+      <b>Levels - Solid - Preset Label</b><br>
+    </section>
+
+    <section id="target7">
+      <b>Levels - Solid - Preset Label - Signal Aspect</b><br>
+    </section>
+
+
+    <script type="module">
+      const cdn = 'https://cdn.jsdelivr.net';
+      const url = new URL('/gh/nyteshade/ne-html/dist/esm/html.js', cdn);
+      const {HTML, commands, Levels} = await import(url.href);
+
+      HTML[commands.register]('NELowLevel', Levels, { preset: 'low', signal: true, noBackground: true });
+      HTML[commands.register]('NEMediumLevel', Levels, { preset: 'medium', signal: true, noBackground: true });
+      HTML[commands.register]('NEHighLevel', Levels, { preset: 'high', signal: true, noBackground: true });
+
+      HTML.NELowLevel().addTo('#target1');
+      HTML.NELowLevel(null, { noBackground: false }).addTo('#target1');
+      HTML.NEMediumLevel().addTo('#target1');
+      HTML.NEMediumLevel(null, { noBackground: false }).addTo('#target1');
+      HTML.NEHighLevel().addTo('#target1');
+      HTML.NEHighLevel(null, { noBackground: false }).addTo('#target1');
+
+      HTML.NELowLevel('Low').addTo('#target2');
+      HTML.NELowLevel('Low', { noBackground: false }).addTo('#target2');
+      HTML.NEMediumLevel('Medium').addTo('#target2');
+      HTML.NEMediumLevel('Medium', { noBackground: false }).addTo('#target2');
+      HTML.NEHighLevel('High').addTo('#target2');
+      HTML.NEHighLevel('High', { noBackground: false }).addTo('#target2');
+
+      HTML.NELowLevel(null, {signal: false}).addTo('#target3');
+      HTML.NELowLevel(null, {signal: false, noBackground: false}).addTo('#target3');
+      HTML.NEMediumLevel(null, {signal: false}).addTo('#target3');
+      HTML.NEMediumLevel(null, {signal: false, noBackground: false}).addTo('#target3');
+      HTML.NEHighLevel(null, {signal: false}).addTo('#target3');
+      HTML.NEHighLevel(null, {signal: false, noBackground: false}).addTo('#target3');
+
+      HTML.NELowLevel('Low', {signal: false}).addTo('#target4');
+      HTML.NELowLevel('Low', {signal: false, noBackground: false}).addTo('#target4');
+      HTML.NEMediumLevel('Medium', {signal: false}).addTo('#target4');
+      HTML.NEMediumLevel('Medium', {signal: false, noBackground: false}).addTo('#target4');
+      HTML.NEHighLevel('High', {signal: false}).addTo('#target4');
+      HTML.NEHighLevel('High', {signal: false, noBackground: false}).addTo('#target4');
+
+      HTML.NELowLevel(null, {solid: true, signal: false}).addTo('#target5');
+      HTML.NELowLevel(null, {solid: true, signal: false, noBackground: false}).addTo('#target5');
+      HTML.NEMediumLevel(null, {solid: true, signal: false}).addTo('#target5');
+      HTML.NEMediumLevel(null, {solid: true, signal: false, noBackground: false}).addTo('#target5');
+      HTML.NEHighLevel(null, {solid: true, signal: false}).addTo('#target5');
+      HTML.NEHighLevel(null, {solid: true, signal: false, noBackground: false}).addTo('#target5');
+
+      HTML.NELowLevel('Low', {solid: true, signal: false}).addTo('#target6');
+      HTML.NELowLevel('Low', {solid: true, signal: false, noBackground: false}).addTo('#target6');
+      HTML.NEMediumLevel('Medium', {solid: true, signal: false}).addTo('#target6');
+      HTML.NEMediumLevel('Medium', {solid: true, signal: false, noBackground: false}).addTo('#target6');
+      HTML.NEHighLevel('High', {solid: true, signal: false}).addTo('#target6');
+      HTML.NEHighLevel('High', {solid: true, signal: false, noBackground: false}).addTo('#target6');
+
+      HTML.NELowLevel('Low', {solid: true}).addTo('#target7');
+      HTML.NELowLevel('Low', {solid: true, noBackground: false}).addTo('#target7');
+      HTML.NEMediumLevel('Medium', {solid: true}).addTo('#target7');
+      HTML.NEMediumLevel('Medium', {solid: true, noBackground: false}).addTo('#target7');
+      HTML.NEHighLevel('High', {solid: true}).addTo('#target7');
+      HTML.NEHighLevel('High', {solid: true, noBackground: false}).addTo('#target7');
+
+      Object.assign(globalThis, { HTML, commands, Levels });
+    </script>
+  </body>
+</html>

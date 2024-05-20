@@ -2,24 +2,17 @@ import { HTML, commands } from '../html.js';
 
 export function Levels(
   options,
-  argPreset = 'low',
   argLabel = undefined,
-  argStyles = { noBackground: false, solid: false, signal: false }
+  argStyles
 ) {
   const opportunities = ['low', 'medium', 'high'];
-  const {
-    preset = argPreset ?? 'high',
-    solid = false,
-    label = argLabel,
-    signal = false,
-    noBackground = false,
-  } = options;
+  let {preset, solid, label, signal, noBackground} = options;
 
-  for (const [key, value] of Object.entries((argStyles || {}))) {
-    if (Reflect.has(options, key)) {
-      options[key] = !!value;
-    }
-  }
+  preset = argStyles?.preset ?? preset;
+  solid = argStyles?.solid ?? solid;
+  label = argLabel ?? label;
+  signal = argStyles?.signal ?? signal;
+  noBackground = argStyles?.noBackground ?? noBackground;
 
   const levelSheet = new CSSStyleSheet();
   const elemSize = { w: 12, h: 32 };
@@ -91,44 +84,13 @@ export function Levels(
             &.signal-aspect {
               width: ${elemSize.w * 3}px;
 
-              &.no-background {
-                figure.level {
-                  opacity: 33%;
-                  display: unset;
-                }
-              }
-
-              &.low {
-                figure.level:nth-child(2),
-                figure.level:nth-child(3) {
-                  display: none;
-                }
-
-                &.no-background {
-                  figure.level:nth-child(2),
-                  figure.level:nth-child(3) {
-                    opacity: 33%;
-                    display: unset;
-                  }
-                }
-              }
-
-              &.medium {
-                figure.level:nth-child(3) {
-                  display: none;
-                }
-
-                &.no-background {
-                  figure.level:nth-child(3) {
-                    opacity: 33%;
-                    display: unset;
-                  }
-                }
+              figure.level {
+                opacity: 33%;
               }
 
               figure.level:nth-child(1) {
-                height: 33%;
                 left: 0;
+                height: 33%;
               }
 
               figure.level:nth-child(2) {
@@ -140,43 +102,112 @@ export function Levels(
                 height: 100%;
                 left: ${elemSize.w * 2}px;
               }
+
+              &.no-background {
+                filter: drop-shadow(1px 1px 1px rgb(0 0 0 /50%));
+
+                figure.level {
+                  opacity: 33%;
+                  display: unset !important;
+                }
+
+                &.low {
+                  figure.level:nth-child(1) {
+                    height: 33%;
+                    opacity: 100%;
+                  }
+                }
+
+                &.medium {
+                  figure.level:nth-child(1),
+                  figure.level:nth-child(2) {
+                    opacity: 100%;
+                  }
+                }
+
+                &.high {
+                  figure.level:nth-child(1),
+                  figure.level:nth-child(2),
+                  figure.level:nth-child(3) {
+                    opacity: 100%;
+                  }
+                }
+              }
+
+              &.solid {
+                figure.level:nth-child(1) {
+                  background-image: unset;
+                  background-color: var(--low-color);
+                }
+                figure.level:nth-child(2) {
+                  background-image: unset;
+                  background-color: var(--medium-color);
+                }
+                figure.level:nth-child(3) {
+                  background-image: unset;
+                  background-color: var(--high-color);
+                }
+              }
+
+              &.low {
+                figure.level:nth-child(1) {opacity: 100%;}
+              }
+
+              &.medium {
+                figure.level:nth-child(1),
+                figure.level:nth-child(2) {opacity: 100%;}
+              }
+
+              &.high {
+                figure.level:nth-child(1),
+                figure.level:nth-child(2),
+                figure.level:nth-child(3) {opacity: 100%;}
+              }
             }
 
             &.low {
-              figure.level:nth-child(1) {
+              figure.level {
                 height: 33%;
                 left: 0;
+              }
+
+              &.solid {
+                figure.level:only-child,
+                figure.level:nth-child(1) {
+                  background-image: unset !important;
+                  background-color: var(--low-color);
+                }
               }
             }
 
             &.medium {
-              figure.level:nth-child(1) {
+              figure.level {
                 height: 66%;
                 left: 0
+              }
+
+              &.solid {
+                figure.level:only-child,
+                figure.level:nth-child(2) {
+                  background-image: unset !important;
+                  background-color: var(--medium-color);
+                }
               }
             }
 
             &.high {
-              figure.level:nth-child(1) {
+              figure.level {
                 height: 100%;
                 left: 0
               }
-            }
 
-
-            &.low.solid figure.level {
-              background-image: unset !important;
-              background-color: var(--low-color);
-            }
-
-            &.medium.solid figure.level {
-              background-image: unset !important;
-              background-color: var(--high-color);
-            }
-
-            &.high.solid figure.level {
-              background-image: unset !important;
-              background-color: var(--high-color);
+              &.solid {
+                figure.level:only-child,
+                figure.level:nth-child(3) {
+                  background-image: unset !important;
+                  background-color: var(--high-color);
+                }
+              }
             }
 
             figure.level {
