@@ -1,30 +1,7 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Levels = void 0;
-const { HTML, commands } = await Promise.resolve().then(() => __importStar(require('https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/esm/html.js')));
+const html_js_1 = require("../html.js");
 function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { noBackground: false, solid: false, signal: false }) {
     const opportunities = ['low', 'medium', 'high'];
     const { preset = argPreset ?? 'high', solid = false, label = argLabel, signal = false, noBackground = false, } = options;
@@ -36,10 +13,10 @@ function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { 
     const levelSheet = new CSSStyleSheet();
     const elemSize = { w: 12, h: 32 };
     const boxSize = { w: signal ? elemSize.w * 3 : elemSize.w };
-    const element = HTML.section({
+    const element = html_js_1.HTML.section({
         class: 'levels',
         shadow: [
-            HTML.style(`
+            html_js_1.HTML.style(`
         :host {
           --low-color: #8691B6;
           --medium-color: #5D6C9E;
@@ -215,14 +192,14 @@ function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { 
           }
         }
       `),
-            HTML.article([
-                HTML.figure({
+            html_js_1.HTML.article([
+                html_js_1.HTML.figure({
                     class: `levels ${preset}`,
                     children: [
-                        HTML.figure({ class: `level` }),
+                        html_js_1.HTML.figure({ class: `level` }),
                     ].concat(signal ? [
-                        HTML.figure({ class: `level` }),
-                        HTML.figure({ class: `level` }),
+                        html_js_1.HTML.figure({ class: `level` }),
+                        html_js_1.HTML.figure({ class: `level` }),
                     ] : [])
                 }),
             ]),
@@ -231,7 +208,7 @@ function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { 
     const [article, levels] = ['article', '.levels']
         .map(s => element.shadowRoot.querySelector(s));
     if (article && label && typeof label === 'string') {
-        article.append(HTML.span({
+        article.append(html_js_1.HTML.span({
             content: label,
             class: 'label'
         }));

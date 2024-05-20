@@ -1,4 +1,4 @@
-const { HTML, commands } = await import('https://cdn.jsdelivr.net/gh/nyteshade/ne-html/dist/esm/html.js');
+import { HTML, commands } from '../html.js';
 export function Levels(options, argPreset = 'low', argLabel = undefined, argStyles = { noBackground: false, solid: false, signal: false }) {
     const opportunities = ['low', 'medium', 'high'];
     const { preset = argPreset ?? 'high', solid = false, label = argLabel, signal = false, noBackground = false, } = options;
