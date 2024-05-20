@@ -873,7 +873,7 @@ ${content || ""}`;
     let { preset, solid, label, signal, noBackground, percent } = options;
     preset = argStyles?.preset ?? preset;
     solid = argStyles?.solid ?? solid;
-    label = argLabel ?? label;
+    label = argLabel ?? argStyles?.label ?? label;
     signal = argStyles?.signal ?? signal;
     noBackground = argStyles?.noBackground ?? noBackground;
     if (typeof percent !== "undefined") {
