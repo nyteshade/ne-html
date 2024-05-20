@@ -1,15 +1,4 @@
-export namespace commands {
-    export let parse: symbol;
-    export let parseOrdered: symbol;
-    export let parseNamed: symbol;
-    export let parseShadow: symbol;
-    export let createStorage: symbol;
-    export let register: symbol;
-    export let registered: symbol;
-    export let define: symbol;
-    export let additionalFunctions: symbol;
-    export { prefix };
-}
+export default HTML;
 export class HTML {
     /**
      * Creates an HTML element based on specified options, applying
@@ -115,5 +104,16 @@ export class HTML {
      */
     static create(...args: any[]): Element;
 }
-export default HTML;
+export namespace commands {
+    export let parse: symbol;
+    export let parseOrdered: symbol;
+    export let parseNamed: symbol;
+    export let parseShadow: symbol;
+    export let createStorage: symbol;
+    export let register: symbol;
+    export let registered: symbol;
+    export let define: symbol;
+    export let additionalFunctions: symbol;
+    export { prefix };
+}
 declare const prefix: string;

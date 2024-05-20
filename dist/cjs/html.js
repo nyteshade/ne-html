@@ -41,7 +41,7 @@
  * versions developed by Brielle Harrison.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HTML = exports.commands = void 0;
+exports.commands = exports.HTML = void 0;
 // Non-exported helpers to make the code cleaner
 const isObj = o => o && typeof o === 'object';
 const isArr = o => Array.isArray(o);
@@ -72,7 +72,7 @@ const prefix = envPrefix || '@nejs.html';
  * // Register a new element factory
  * HTML[commands.register]('custom-element', elementFactoryFunction);
  */
-exports.commands = {
+const commands = {
     parse: Symbol.for(`${prefix}.init.parser`),
     parseOrdered: Symbol.for(`${prefix}.init.ordered.params`),
     parseNamed: Symbol.for(`${prefix}.init.named.params`),
@@ -84,6 +84,7 @@ exports.commands = {
     additionalFunctions: Symbol.for(`${prefix}.result.prototype`),
     prefix,
 };
+exports.commands = commands;
 class HTML {
     /**
      * Creates an HTML element based on specified options, applying
@@ -190,7 +191,7 @@ class HTML {
     static create() {
         // Passed in arguments are validated and parsed using the
         // relevant parser. See HTML[commands.parse] for more details
-        const options = HTML[exports.commands.parse](...arguments);
+        const options = HTML[commands.parse](...arguments);
         // Shorthand for the parsed.useDocument value. Should never be
         // null or undefined.
         const doc = options?.useDocument ?? top.window.document;
@@ -289,7 +290,7 @@ class HTML {
         }
         // Apply some additional functions to the element post creation
         // that can make life a bit easier.
-        HTML[exports.commands.additionalFunctions]({
+        HTML[commands.additionalFunctions]({
             element, reusableStyleSheet, reusableStyleElement
         });
         Object.defineProperty(element, 'identifier', {
@@ -331,12 +332,12 @@ class HTML {
      * const {parse} = commands;
      * HTML[parse]('my-component', ['child1', 'child2']);
      */
-    static [exports.commands.parse](...args) {
+    static [commands.parse](...args) {
         // Grab these out to make the code a bit more readable. Bind
         // them in case relative static references are made to the HTML
         // class itself.
-        const parseOrdered = this[exports.commands.parseOrdered].bind(HTML);
-        const parseNamed = this[exports.commands.parseNamed].bind(HTML);
+        const parseOrdered = this[commands.parseOrdered].bind(HTML);
+        const parseNamed = this[commands.parseNamed].bind(HTML);
         // Only true error case; we need at least a tag name here
         if (args.length === 0) {
             throw new SyntaxError('HTML.create must have parameters!');
@@ -421,10 +422,10 @@ class HTML {
      *   { mode: 'open', clonable: true, slotAssignment: 'named' }, []
      * );
      */
-    static [exports.commands.parseOrdered](tagName, content, style, attributes, webComponentName, useDocument, children, shadow) {
+    static [commands.parseOrdered](tagName, content, style, attributes, webComponentName, useDocument, children, shadow) {
         // The shadow object's presence, lets us know we wish to
         // add a shadow DOM to the element being created.
-        const _shadow = HTML[exports.commands.parseShadow](tagName, shadow);
+        const _shadow = HTML[commands.parseShadow](tagName, shadow);
         // When webComponentName is supplied to document.createElement,
         // it must be encapsulated in an object with the `is` property
         if (webComponentName) {
@@ -505,7 +506,7 @@ class HTML {
      * //   class: 'main-class additional-class theme-dark'
      * // }
      */
-    static [exports.commands.parseNamed](tagName, params) {
+    static [commands.parseNamed](tagName, params) {
         // Extract expected properties for ordered params
         // as well as object init helpers
         const { 
@@ -521,7 +522,7 @@ class HTML {
             classes, dataset,
         });
         // parse the ordered parameters
-        const parsed = this[exports.commands.parseOrdered](tagName, content, style, attributes, webComponentName, useDocument, children, shadow);
+        const parsed = this[commands.parseOrdered](tagName, content, style, attributes, webComponentName, useDocument, children, shadow);
         // if we have a class property and its a string, set it
         // as an attribute to ease excess typing
         if (isStr(klass)) {
@@ -580,7 +581,7 @@ class HTML {
      *  'my-custom-element', { tryAnyhow: false }
      * );
      */
-    static [exports.commands.parseShadow](tagName, shadowDOMOptions) {
+    static [commands.parseShadow](tagName, shadowDOMOptions) {
         if (!shadowDOMOptions) {
             return undefined;
         }
@@ -671,7 +672,7 @@ class HTML {
      *   descriptorBase: { enumerable: true, configurable: true }
      * });
      */
-    static [exports.commands.additionalFunctions]({ element, reusableStyleSheet, reusableStyleElement, descriptorBase = { enumerable: false, configurable: true }, }) {
+    static [commands.additionalFunctions]({ element, reusableStyleSheet, reusableStyleElement, descriptorBase = { enumerable: false, configurable: true }, }) {
         Object.defineProperty(element, 'cssVar', { ...descriptorBase,
             value: {
                 /**
@@ -845,14 +846,14 @@ class HTML {
      * // Use the storage to set a new theme
      * themeStorage.set('color', 'dark');
      */
-    static [exports.commands.createStorage](forPrimaryKey, forSubKey = null, create = true) {
-        let _present = Reflect.has(globalThis, exports.commands.createStorage);
+    static [commands.createStorage](forPrimaryKey, forSubKey = null, create = true) {
+        let _present = Reflect.has(globalThis, commands.createStorage);
         const [hasStorage, storage] = [
             _present,
-            (_present && globalThis[exports.commands.createStorage]) || new Map()
+            (_present && globalThis[commands.createStorage]) || new Map()
         ];
         if (!hasStorage) {
-            globalThis[exports.commands.createStorage] = storage;
+            globalThis[commands.createStorage] = storage;
         }
         const _pkTmp = create && new Map() || undefined;
         const [hasPkData, pkData] = [
@@ -872,15 +873,15 @@ class HTML {
         }
         return skData || pkData || storage;
     }
-    static [exports.commands.register](name, factoryFunction, config = {}, thisArg, ...args) {
-        const storage = HTML[exports.commands.createStorage](exports.commands.register, name);
+    static [commands.register](name, factoryFunction, config = {}, thisArg, ...args) {
+        const storage = HTML[commands.createStorage](commands.register, name);
         storage.set('factory', factoryFunction);
         storage.set('config', config);
         storage.set('thisArg', thisArg);
         storage.set('args', args);
     }
-    static *[exports.commands.registered]() {
-        const storage = HTML[exports.commands.createStorage](exports.commands.register);
+    static *[commands.registered]() {
+        const storage = HTML[commands.createStorage](commands.register);
         for (const [elementName, metadata] of storage.entries()) {
             yield [elementName, metadata];
         }
@@ -892,7 +893,7 @@ const prototype = Object.create(Function.prototype);
 // Applies a Proxy around the duplicated Function.prototype
 const proxiedProto = new Proxy(prototype, {
     get(target, property, receiver) {
-        const factoryElements = HTML[exports.commands.createStorage](exports.commands.register, property, false);
+        const factoryElements = HTML[commands.createStorage](commands.register, property, false);
         if (factoryElements) {
             const factory = factoryElements.get('factory');
             const config = factoryElements.get('config');
@@ -924,7 +925,7 @@ const proxiedProto = new Proxy(prototype, {
 // proxy in its prototype chain.
 Object.setPrototypeOf(HTML, proxiedProto);
 // Register some basics
-HTML[exports.commands.register]('script:src', function scriptSource(config, source, attrs) {
+HTML[commands.register]('script:src', function scriptSource(config, source, attrs) {
     if (!source && typeof source !== 'string') {
         throw new SyntaxError('HTML["script:src"] must have a source param');
     }
@@ -936,7 +937,7 @@ HTML[exports.commands.register]('script:src', function scriptSource(config, sour
         type: 'application/javascript'
     });
 }, {});
-HTML[exports.commands.register]('script:module', function scriptSource(config, srcOrImports, initialContent, attrs) {
+HTML[commands.register]('script:module', function scriptSource(config, srcOrImports, initialContent, attrs) {
     let src = undefined;
     let imports = [];
     if (srcOrImports) {
@@ -973,7 +974,7 @@ HTML[exports.commands.register]('script:module', function scriptSource(config, s
         type: 'module'
     });
 }, {});
-HTML[exports.commands.register]('link:rel', function scriptSource(config, url, rel = "stylesheet", attrs) {
+HTML[commands.register]('link:rel', function scriptSource(config, url, rel = "stylesheet", attrs) {
     if (!url && typeof url !== 'string') {
         throw new SyntaxError('HTML["link:rel"] must have a url param');
     }

@@ -72,7 +72,7 @@ const prefix = envPrefix || '@nejs.html';
  * // Register a new element factory
  * HTML[commands.register]('custom-element', elementFactoryFunction);
  */
-export const commands = {
+const commands = {
   parse: Symbol.for(`${prefix}.init.parser`),
   parseOrdered: Symbol.for(`${prefix}.init.ordered.params`),
   parseNamed: Symbol.for(`${prefix}.init.named.params`),
@@ -89,7 +89,7 @@ export const commands = {
   prefix,
 }
 
-export class HTML {
+class HTML {
   /**
    * Creates an HTML element based on specified options, applying
    * attributes, styles, content, and potentially a shadow DOM with
@@ -1140,4 +1140,5 @@ HTML[commands.register]('link:rel', function scriptSource(
   });
 }, {});
 
+export { HTML, commands };
 export default HTML;
