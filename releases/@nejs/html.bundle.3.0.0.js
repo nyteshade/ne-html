@@ -149,24 +149,24 @@
      */
     static create() {
       const options = _HTML[commands.parse](...arguments);
-      const doc2 = options?.useDocument ?? top.window.document;
+      const doc = options?.useDocument ?? top.window.document;
       const reusableStyleSheet = new CSSStyleSheet();
-      let reusableStyleElement = doc2.querySelector("style#htmljs");
+      let reusableStyleElement = doc.querySelector("style#htmljs");
       const { tagName: _tag, webComponentName: _wcn } = options;
-      const element = doc2.createElement(_tag, _wcn);
+      const element = doc.createElement(_tag, _wcn);
       for (const [key, value] of options.attributes) {
         if (isObj(key)) {
           let attribute;
           let { name, namespaceURI: ns, qualifiedName: qn } = key;
           if (namespaceURI || qualifiedName) {
-            attribute = doc2.createAttributeNS(ns, qn);
+            attribute = doc.createAttributeNS(ns, qn);
             attribute.value = value;
             element.setAttributeNodeNS(attribute);
           } else {
             if (!isStr(name)) {
               name = !name && String(name) || (Object.valueOf.call(name).toString() || String(name));
             }
-            attribute = doc2.createAttribute(name);
+            attribute = doc.createAttribute(name);
             attribute.value = value;
             element.setAttributeNode(attribute);
           }
@@ -198,7 +198,7 @@
         });
       }
       if (isArr(textContent)) {
-        const nodes = textContent.filter((truthy) => truthy).map((s) => doc2.createTextNode(s));
+        const nodes = textContent.filter((truthy) => truthy).map((s) => doc.createTextNode(s));
         if (nodes.length) {
           element.append(...nodes);
         }
@@ -218,7 +218,8 @@
       _HTML[commands.additionalFunctions]({
         element,
         reusableStyleSheet,
-        reusableStyleElement
+        reusableStyleElement,
+        doc
       });
       Object.defineProperty(element, "identifier", {
         enumerable: false,
@@ -565,8 +566,10 @@
       element,
       reusableStyleSheet,
       reusableStyleElement,
+      doc,
       descriptorBase = { enumerable: false, configurable: true }
     }) {
+      doc = doc || top.window.document;
       Object.defineProperty(
         element,
         "cssVar",

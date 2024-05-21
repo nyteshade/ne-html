@@ -336,7 +336,7 @@ class HTML {
         // Apply some additional functions to the element post creation
         // that can make life a bit easier.
         HTML[commands.additionalFunctions]({
-            element, reusableStyleSheet, reusableStyleElement
+            element, reusableStyleSheet, reusableStyleElement, doc
         });
         Object.defineProperty(element, 'identifier', {
             enumerable: false,
@@ -717,7 +717,8 @@ class HTML {
      *   descriptorBase: { enumerable: true, configurable: true }
      * });
      */
-    static [commands.additionalFunctions]({ element, reusableStyleSheet, reusableStyleElement, descriptorBase = { enumerable: false, configurable: true }, }) {
+    static [commands.additionalFunctions]({ element, reusableStyleSheet, reusableStyleElement, doc, descriptorBase = { enumerable: false, configurable: true }, }) {
+        doc = doc || top.window.document;
         Object.defineProperty(element, 'cssVar', { ...descriptorBase,
             value: {
                 /**
