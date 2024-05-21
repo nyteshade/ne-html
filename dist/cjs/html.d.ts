@@ -13,36 +13,9 @@ export const commands: {
 };
 
 export class HTML {
-  static create(
-    tagName: string,
-    content?: string | string[] | Record<any, any>,
-    style?: Record<string, string>,
-    attributes?: Record<string, string>,
-    webComponentName?: string,
-    useDocument?: Document,
-    children?: Node[],
-    shadow?:
-      | {
-          options?: Record<string, any>;
-          children?: Node[];
-        }
-      | Node[]
-  ): HTMLElement;
+  static create(...args: any[]): HTMLElement;
 
-  static [tagName: string & { create: never }]: (
-    content?: string | string[] | Record<any, any>,
-    style?: Record<string, string>,
-    attributes?: Record<string, string>,
-    webComponentName?: string,
-    useDocument?: Document,
-    children?: Node[],
-    shadow?:
-      | {
-          options?: Record<string, any>;
-          children?: Node[];
-        }
-      | Node[],
-  ) => HTMLElement;
+  static [tagName: string]: (...args: any[]) => HTMLElement;
 
   static [commands.parse](...args: any[]): Record<string | symbol, any>;
 
