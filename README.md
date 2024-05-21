@@ -643,6 +643,8 @@ const shadyDiv = HTML.div({shadow: {
 
 ## <a name="changelog">Changelog</a>
 _[↩︎ Back to top](#toc)_
+ * **2.4.1** - TypeScript, ever annoying, needs some hand crafted 
+   types for HTML since it uses a Proxy in its prototype chain
  * **2.4.0** - Added unit tests for `HTML.Levels` and significantly
    improved documentation.
  * **2.3.0** - Added in the `HTML.Levels` composite element both

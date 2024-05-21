@@ -65,6 +65,17 @@ await attempt(messages.creating.bundle, async () => {
   return response;
 });
 
+await attempt(messages.creating.types, async () => {
+  fs.copyFileSync(
+    '@types/@nejs/html/index.d.ts',
+    'dist/esm/html.d.ts'
+  );
+  fs.copyFileSync(
+    '@types/@nejs/html/index.d.ts',
+    'dist/cjs/html.d.ts'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Copy the output bundle to a file without a specific version number in
 // its in name, but with the string 'latest' instead.
@@ -291,6 +302,7 @@ function getMessages({version, bundle, latest, release}) {
       bundle: 'Creating browser bundle',
       latest: `Creating ${latest[0]}(.map)`,
       release: `Creating ${release[0]}(.map)`,
+      types: 'I hate typescript, hand applying types',
       version: `Updating version file contents`,
     },
 
