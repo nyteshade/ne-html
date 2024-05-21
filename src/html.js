@@ -89,6 +89,15 @@ const commands = {
   prefix,
 }
 
+/**
+ * Represents the HTML class which provides methods to create and
+ * manage HTML elements / dynamically. This class serves as a central
+ * point for creating complex HTML structures / using JavaScript,
+ * offering both ordered and named parameter handling for element
+ * creation.
+ *
+ * @class HTML
+ */
 class HTML {
   /**
    * Creates an HTML element based on specified options, applying
@@ -268,20 +277,67 @@ class HTML {
     // and not accidentally destroyed.
     // ------------------------------------------------------------
 
-    // If the contents of the `options.content` property is a string,
-    // then a `Text` node is created with the strings contents and
-    // it is appended to the element.
+    // Some primitives convert rather well to strings, these are
+    // listed in this array.
+    const validPrimitives = ['number', 'symbol', 'boolean', 'bigint'];
+
+    // `typeof content.options` is a bit lengthy to type and it reads
+    // better if we reassign that value here rather than recalculating
+    // each time; though its cost is minimal.
+    const contentType = typeof options.content;
+
+    // Create a variable that will eventually, possibly, hold an
+    // array of strings.
+    let textContent = undefined;
+
+    // If the content is a string already, just take it.
     if (isStr(options.content)) {
-      element.append(doc.createTextNode(options.content));
+      textContent = [options.content];
+    }
+    // If it is a know well converting primitive, take convert and use
+    else if (validPrimitives.includes(contentType)) {
+      textContent = [String(options.content)];
     }
     // Optionally if the options.content value is an Array, each
-    // element is blindly coerced into a String and wrapped in a
-    // browser `Text` node, before being appended in the supplied
-    // order to the element.
+    // element converted into a string using a best effort for
+    // optimal output. Define a valueOf() for your objects if you
+    // want to customize behavior here.
     else if (isArr(options.content)) {
-      element.append(
-        ...(options.content.map(e => doc.createTextNode(String(e)))),
-      );
+      textContent = options.content
+        .map(contentValue => {
+          const valueType = typeof contentValue;
+
+          if ((
+            isStr(contentValue) ||
+            validPrimitives.includes(valueType)) &&
+            !(valueType === 'object' && contentValue?.valueOf)
+          ) {
+            return String(contentValue);
+          }
+          else if (contentValue?.valueOf) {
+            return String(contentValue.valueOf());
+          }
+          else {
+            return undefined;
+          }
+        })
+    }
+
+    // If we have textContent and its an array, we can now safely
+    // convert each element into a TextNode for element insertion.
+    if (isArr(textContent)) {
+      const nodes = textContent
+        // Remove any empty strings, nulls or undefineds that
+        // may have crept in.
+        .filter(truthy => truthy)
+
+        // Convert them all the remaining elements to text nodes
+        .map(s => doc.createTextNode(s));
+
+      // One last check, you know, to be extra extra safe.
+      if (nodes.length) {
+        element.append(...nodes);
+      }
     }
 
     // Any child nodes/elements in the `options.children` array,
@@ -1118,6 +1174,28 @@ Object.setPrototypeOf(HTML, proxiedProto);
 
 // Register some basics
 
+/**
+ * Registers a function to create a script element with a specified
+ * source. This function validates the source parameter and
+ * constructs a script element with optional attributes.
+ *
+ * @param {Object} config - Configuration object (currently unused).
+ * @param {string} source - The URL source for the script.
+ * @param {Object} [attrs={}] - Additional attributes to apply to
+ * the script tag.
+ * @throws {SyntaxError} If the source parameter is not provided
+ * or is not a string.
+ * @returns {HTMLScriptElement} The constructed script element.
+ *
+ * @example
+ * // Usage:
+ * const scriptElement = HTML['script:src'](
+ *   'https://example.com/script.js',
+ *   { async: true }
+ * );
+ * document.body.appendChild(scriptElement);
+ * // <script src="https://example.com/script.js" async></script>
+ */
 HTML[commands.register]('script:src', function scriptSource(
   config,
   source,
@@ -1137,54 +1215,197 @@ HTML[commands.register]('script:src', function scriptSource(
   });
 }, {});
 
+/**
+ * Registers a function to create a module script element, optionally
+ * with dynamic imports and inline code. This function can either
+ * link to an external module via `src` or include inline module
+ * code along with static and dynamic imports.
+ *
+ * @param {Object} config - Configuration object which may contain
+ * default `src`, `code`, and `attributes`.
+ * @param {Object} [argOpts={}] - Options object to override or
+ * specify additional properties:
+ *   - `src`: URL of the module script (if external).
+ *   - `imports`: Array of static imports.
+ *   - `awaitImports`: Array of dynamic imports.
+ *   - `code`: Inline code to be included in the script.
+ *   - `attributes`: HTML attributes for the script tag.
+ * @throws {SyntaxError} If both `src` and content (`code`,
+ * `imports`, or `awaitImports`) are provided.
+ * @returns {HTMLScriptElement} The constructed script element,
+ * either linked or inline based on provided options.ded options.
+ *
+ * @example
+ * // Registering a module with external source:
+ * HTML['script:module']({ src: 'https://example.com/module.js' });
+ *
+ * @example
+ * // Or a supported shorthand is if args is URL convertible it will
+ * // become the same as { src: argOpts }. If it is not, it but is
+ * // still a string, it is assumed to be { code: argOpts }, so
+ * HTML['script:module]('https://example.com/module.js') // or
+ * HTML['script:modeul]('console.log("hello")') // both work safely
+ *
+ * @example
+ * // Registering a module with inline code and imports:
+ * HTML['script:module']({
+ *   imports: [['defaultExport1', 'module1.js']],
+ *   awaitImports: [['defaultExport', 'module2.js']],
+ *   code: 'console.log("Inline module code executed");'
+ * });
+ *
+ * // Generates
+ * <script type="module">
+ *   import defaultExport1 from 'module1.js';
+ *   const { defaultExport } = await import('module2.js');
+ *
+ *   console.log("Inline module code executed");
+ * </script>
+ *
+ * @example
+ * HTML['script:module']({
+ *  imports: [['defaultExport', 'module1.js']],
+ *  awaitImports: [[['HTML', ['commands','Commands']] ,'@nejs/html']],
+ * })
+ *
+ * // Generates
+ * <script type="module">
+ *   import defaultExport from 'module1.js';
+ *   const { HTML, commands: Commands } = await import('@nejs/html');
+ * </script>
+ */
 HTML[commands.register]('script:module', function scriptSource(
   config,
-  srcOrImports,
-  initialContent,
-  attrs,
+  argOpts = {}
 ) {
-  let src = undefined;
-  let imports = [];
+  if (isStr(argOpts)) {
+    let url = undefined;
+    let code = undefined;
 
-  if (srcOrImports) {
-    if (Array.isArray(srcOrImports)) {
-      imports = srcOrImports.map(item => {
-        if (Array.isArray(item)) {
-          const [nameOrNames, from] = item;
-          let names = nameOrNames;
-          if (!Array.isArray(nameOrNames)) {
-            names = [String(nameOrNames)];
-          }
-          return `import { ${names.join(', ')} } from '${from}';`
-        }
-        else {
-          return `import * from '${String(item)}';`;
-        }
-      });
-    }
-    else if (typeof srcOrImports === 'string') {
-      src = srcOrImports;
-    }
+    try { url = new URL(argOpts) } catch(ignore) { code = argOpts }
+
+    argOpts = {
+      src: url?.href,
+      imports: [],
+      awaitImports: [],
+      code,
+      attributes: {},
+    };
   }
 
-  const attributes = attrs ?? {};
-  let content = initialContent;
+  let {
+    src = config?.src,
+    imports = [],
+    awaitImports = [],
+    code = config?.code,
+    attributes = { ...(config?.attributes || {}) }
+  } = argOpts;
+
+  imports = [...(config?.imports || []), ...imports];
+  awaitImports = [...(config?.awaitImports || []), ...awaitImports];
+
+  const options = { ...(config ?? {}),
+    src, imports, awaitImports, code, attributes,
+  };
+
+  ({ src, imports, awaitImports, code, attributes } = options);
+
+  const wantsContent = !!(code || imports.length || awaitImports.length);
+
+  if (isStr(src) && wantsContent) {
+    throw new SyntaxError(
+      'HTML["script:module"] cannot have both content and "src"'
+    );
+  }
+
+  let statements = [];
 
   if (src) {
-    attributes.src = src;
+    return HTML.script({
+      src,
+      type: "module",
+      attributes
+    });
   }
 
-  if (imports.length) {
-    content = `${imports.join('\n')}\n\n${content || ''}`;
+  const convertKeys = keys => {
+    if (keys.length === 1)
+      return `${keys[0]}`
+
+    let response = [];
+    for (const key of keys) {
+      if (isArr(key)) {
+        if (key.length !== 2) continue;
+        response.push(`${key[0]}: ${key[1]}`);
+      }
+      else response.push(key);
+    }
+
+    return response.length ? response.join(', ') : undefined;
+  }
+
+  for (const esmImport of [...imports, ...awaitImports]) {
+    const isDynamicImport = awaitImports.includes(esmImport);
+    if (!isArr(esmImport))
+      continue;
+
+    let [keys, value] = esmImport;
+    keys = isStr(keys) ? [keys] : isArr(keys) ? keys : undefined;
+
+    if (!isStr(value) || !keys)
+      continue;
+
+    const importValues = convertKeys(keys);
+    if (!importValues)
+      continue;
+
+    if (isDynamicImport) {
+      statements.push(
+        `const ${importValues} = await import('${value}');`
+      );
+    } else {
+      statements.push(
+        `import ${importValues} from '${value}';`
+      );
+    }
+  }
+
+  if (code) {
+    statements.push('');
+    statements.push(String(code));
   }
 
   return HTML.script({
-    content,
+    content: statements.join('\n'),
+    type: 'module',
     attributes,
-    type: 'module'
   });
 }, {});
 
+/**
+ * Registers a function under the 'link:rel' command to create a
+ * link element with specified attributes. This function ensures
+ * that a URL is provided and constructs a link element with the
+ * given relationship type and additional attributes.
+ *
+ * @param {Object} config - Configuration object (currently unused).
+ * @param {string} url - The URL for the link element. Must be
+ * a string.
+ * @param {string} [rel="stylesheet"] - The relationship type of
+ * the link element.
+ * @param {Object} [attrs={}] - Additional attributes to apply to
+ * the link element.
+ * @throws {SyntaxError} If the `url` parameter is not provided or
+ * is not a string.
+ * @returns {HTMLLinkElement} The constructed link element.
+ *
+ * @example
+ * // Usage:
+ * HTML.link("https://example.com/stylesheet.css");
+ *
+ * // Generates
+ * <link rel="stylesheet" href="https://example.com/stylesheet.css">
+ */
 HTML[commands.register]('link:rel', function scriptSource(
   config,
   url,

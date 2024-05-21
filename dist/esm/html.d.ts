@@ -12,8 +12,392 @@ export const commands: {
   readonly prefix: string;
 };
 
+/**
+ * Represents the HTML class which provides methods to create and
+ * manage HTML elements / dynamically. This class serves as a central
+ * point for creating complex HTML structures / using JavaScript,
+ * offering both ordered and named parameter handling for element
+ * creation.
+ *
+ * @class HTML
+ */
 export class HTML {
+  /**
+   * Creates an HTML element based on specified options, applying
+   * attributes, styles, content, and potentially a shadow DOM with
+   * custom CSS variables.
+   *
+   * Strings supplied for 'content' will be wrapped in a DOM TextNode
+   * rather than applied as innerHTML; this is intentional.
+   *
+   * The HTML.create() method can receive its input in one of two
+   * manners, either in normal ordered input format (as with most
+   * functions) or it can be given a name and then supplied an object
+   * with more values. This latter format provides more flexibility
+   * and some helper values that translate automatically into their
+   * expected locations on the created element.
+   *
+   * Ordered Parameters (only name is required)
+   *   1. name - the tag name
+   *   2. content - optional string of content for the tag
+   *   3. style - an object with style properties that will be
+   *      applied as a style attribute. So `{ fontName: 'courier' }`
+   *      becomes `<tag style="font-name: 'courier';">`
+   *   4. attributes - an object of additional tag attributes that
+   *      are applied using `element.setAttribute`. So an object
+   *      with `{ id: 'identifier' }` becomes `<tag id="identifier">`
+   *   5. webComponentName - this must be supplied if the element
+   *      being created is a web component. This should be a string
+   *      that will automatically be converted to `{ is: value }`
+   *      before being used with `document.createElement()`
+   *   6. useDocument - a way to specify an alternate `document`
+   *      object than the global `document`. Can be used to denote
+   *      a frame's `document` or another window's `document`
+   *   7. children - an array of `HTMLElement` object instances that
+   *      or strings that will be appended to the created element.
+   *   8. shadow - if preset, this should be either an object or
+   *      an array. If supplied as an array, it will represent
+   *      `HTMLElement` instances that are inserted into the attached
+   *      shadowRoot of the created element. If it is an object it
+   *      should have the keys `options` and `children`. Omitting
+   *      either value will result in defaults being added. The
+   *      default shadow dom options are `{ mode: 'open',
+   *      clonable: true, slotAssignment: 'named' }`. These can
+   *      be overridden individually or as a whole by specifying
+   *      each and their new value in `{shadow: {options: { ... }}}`
+   *
+   * Object Parameters (only name is required)
+   *
+   *   1. name
+   *   2. config
+   *
+   * The config can process the above ordered properties when given
+   * as object keys. These map, in the same order, as the ordered
+   * parameters that were just described above:
+   *
+   *   `content`, `style`, `attributes`, `webComponentName`,
+   *   `useDocument`, `children`, `shadow`
+   *
+   * Additionally, the following properties can be supplied
+   *
+   *   - `class`: this property becomes a `class="value"` attribute
+   *     on the resulting element.
+   *   - `classes`: this must be an array of strings, non-string
+   *     values will be ignored. Each will be joined with a space
+   *     in between and appended to any previously existing class
+   *     attribute. If no previous class attribute exists, one
+   *     will be created. If the resulting filter of non-strings
+   *     leaves an empty string, and not previous class attribute
+   *     was otherwise specified, no class attribute will be created
+   *   - `dataset`: any object supplied here will have its keys and
+   *     values set on the element.dataset object. When assigning
+   *     keys and values to this object in a browser they become
+   *     attributes on a tag with the 'data-' prefix. These values
+   *     must be valid names or an error will occur. Camel cased
+   *     values will be shown with dashes. So `'greatScott'` becomes
+   *     `<tag data-great-scott>`.
+   *
+   * A Proxy is included in the prototype chain of the HTML class,
+   * allowing first parameter, denoting the tags name, as a property
+   * on the HTML class itself. See examples below.
+   *
+   * @param {...*} args - Arguments to configure the element.
+   * @returns {Element} The newly created HTML element.
+   * @example
+   * // Create a simple element with content:
+   * const element = HTML.create('div', {content: 'Hello, world!'});
+   * document.body.appendChild(element);
+   *
+   * @example
+   * // Using the prototype chain proxy, simpler syntax can be
+   * // achieved.
+   * const element = HTML.div('Hello world');
+   * // <div>Hello world</div>
+   *
+   * // This syntax is also overloaded for convenience in many ways
+   * const element = HTML.div([
+   *   HTML.label({ for: 'input-name', content: 'Name' }),
+   *   HTML.input({ id: 'input-name, type: 'text' }),
+   * ])
+   * // <div>
+   * //   <label for="input-name">Name</label>
+   * //   <input type="text" id="input-name">
+   * // </div>
+   */
   static create(...args: any[]): HTMLElement;
+
+  /**
+   * Registers a function to create a script element with a specified
+   * source. This function validates the source parameter and
+   * constructs a script element with optional attributes.
+   *
+   * @param {Object} config - Configuration object (currently unused).
+   * @param {string} source - The URL source for the script.
+   * @param {Object} [attrs={}] - Additional attributes to apply to
+   * the script tag.
+   * @throws {SyntaxError} If the source parameter is not provided
+   * or is not a string.
+   * @returns {HTMLScriptElement} The constructed script element.
+   *
+   * @example
+   * // Usage:
+   * const scriptElement = HTML['script:src'](
+   *   'https://example.com/script.js',
+   *   { async: true }
+   * );
+   * document.body.appendChild(scriptElement);
+   * // <script src="https://example.com/script.js" async></script>
+   */
+  static ['script:src']: (...args: any[]) => HTMLScriptElement;
+
+  /**
+   * Registers a function to create a module script element, optionally
+   * with dynamic imports and inline code. This function can either
+   * link to an external module via `src` or include inline module
+   * code along with static and dynamic imports.
+   *
+   * @param {Object} config - Configuration object which may contain
+   * default `src`, `code`, and `attributes`.
+   * @param {Object} [argOpts={}] - Options object to override or
+   * specify additional properties:
+   *   - `src`: URL of the module script (if external).
+   *   - `imports`: Array of static imports.
+   *   - `awaitImports`: Array of dynamic imports.
+   *   - `code`: Inline code to be included in the script.
+   *   - `attributes`: HTML attributes for the script tag.
+   * @throws {SyntaxError} If both `src` and content (`code`,
+   * `imports`, or `awaitImports`) are provided.
+   * @returns {HTMLScriptElement} The constructed script element,
+   * either linked or inline based on provided options.ded options.
+   *
+   * @example
+   * // Registering a module with external source:
+   * HTML['script:module']({ src: 'https://example.com/module.js' });
+   *
+   * @example
+   * // Or a supported shorthand is if args is URL convertible it will
+   * // become the same as { src: argOpts }. If it is not, it but is
+   * // still a string, it is assumed to be { code: argOpts }, so
+   * HTML['script:module]('https://example.com/module.js') // or
+   * HTML['script:modeul]('console.log("hello")') // both work safely
+   *
+   * @example
+   * // Registering a module with inline code and imports:
+   * HTML['script:module']({
+   *   imports: [['defaultExport1', 'module1.js']],
+   *   awaitImports: [['defaultExport', 'module2.js']],
+   *   code: 'console.log("Inline module code executed");'
+   * });
+   *
+   * // Generates
+   * <script type="module">
+   *   import defaultExport1 from 'module1.js';
+   *   const { defaultExport } = await import('module2.js');
+   *
+   *   console.log("Inline module code executed");
+   * </script>
+   *
+   * @example
+   * HTML['script:module']({
+   *  imports: [['defaultExport', 'module1.js']],
+   *  awaitImports: [[['HTML', ['commands','Commands']] ,'@nejs/html']],
+   * })
+   *
+   * // Generates
+   * <script type="module">
+   *   import defaultExport from 'module1.js';
+   *   const { HTML, commands: Commands } = await import('@nejs/html');
+   * </script>
+   */
+  static ['script:module']: (...args: any[]) => HTMLScriptElement;
+
+  /**
+   * Registers a function under the 'link:rel' command to create a
+   * link element with specified attributes. This function ensures
+   * that a URL is provided and constructs a link element with the
+   * given relationship type and additional attributes.
+   *
+   * @param {Object} config - Configuration object (currently unused).
+   * @param {string} url - The URL for the link element. Must be
+   * a string.
+   * @param {string} [rel="stylesheet"] - The relationship type of
+   * the link element.
+   * @param {Object} [attrs={}] - Additional attributes to apply to
+   * the link element.
+   * @throws {SyntaxError} If the `url` parameter is not provided or
+   * is not a string.
+   * @returns {HTMLLinkElement} The constructed link element.
+   *
+   * @example
+   * // Usage:
+   * HTML.link("https://example.com/stylesheet.css");
+   *
+   * // Generates
+   * <link rel="stylesheet" href="https://example.com/stylesheet.css">
+   */
+  static ['link:rel']: (...args:[]) => HTMLLinkElement;
+
+  /**
+   * Creates a composite element that is shipped with the HTML class.
+   * The low signal level is a sort of progress indiciator that shows
+   * three vertical bars in ascending order from left to right. The
+   * low signal variant, shows the first bar in color with the second
+   * two in a translucent appearance to indicate they are not filled.
+   *
+   * It invokes the Levels factory method with the following default
+   * configuration:
+   *
+   * ```js
+   * { preset: 'low', signal: true, noBackground: true }
+   * ```
+   *
+   * @param {string} label if the label parameter is provided, a
+   * text label will appear adjacent to the right of the levels
+   * icon that is generated.
+   * @param {object} styles an optional object that supports setting
+   * the following values:
+   *   {string} preset - a string with one of 'low', 'medium', 'high'
+   *     as values.
+   *   {boolean} solid - if true, will prevent the component from
+   *     indicating each vertical bar as a gradient and use a single
+   *     color for each to differentiate their appearance.
+   *   {string} label - same as the first parameter, applied here it
+   *     will overwrite the value of the first parameter. You can
+   *     supply an object with a getter for `label` using this
+   *     approach if the value needs to be dynamic.
+   *   {boolean} signal - if true, as is the default here, you will
+   *     see three adjacent vertical bars instead of a single bar
+   *     with a more dynamic value.
+   *   {boolean} noBackground - if true, as is the default, there
+   *     will be no rendered and shadowed border around the bars.
+   *   {number} percent - a number value clamped from 0 to 100 that
+   *     indicates how full the vertical bar in this component should
+   *     be. [Note: does nothing if signal is true]
+   */
+  static NELowSignalLevel: (...args: []) => HTMLElement;
+
+  /**
+   * Creates a composite element that is shipped with the HTML class.
+   * The medium signal level is a sort of progress indiciator that
+   * shows three vertical bars in ascending order from left to right.
+   * The medium signal variant, shows the first and second bar in
+   * color with the third in a translucent appearance to indicate it
+   * is not filled.
+   *
+   * It invokes the Levels factory method with the following default
+   * configuration:
+   *
+   * ```js
+   * { preset: 'medium', signal: true, noBackground: true }
+   * ```
+   *
+   * @param {string} label if the label parameter is provided, a
+   * text label will appear adjacent to the right of the levels
+   * icon that is generated.
+   * @param {object} styles an optional object that supports setting
+   * the following values:
+   *   {string} preset - a string with one of 'low', 'medium', 'high'
+   *     as values.
+   *   {boolean} solid - if true, will prevent the component from
+   *     indicating each vertical bar as a gradient and use a single
+   *     color for each to differentiate their appearance.
+   *   {string} label - same as the first parameter, applied here it
+   *     will overwrite the value of the first parameter. You can
+   *     supply an object with a getter for `label` using this
+   *     approach if the value needs to be dynamic.
+   *   {boolean} signal - if true, as is the default here, you will
+   *     see three adjacent vertical bars instead of a single bar
+   *     with a more dynamic value.
+   *   {boolean} noBackground - if true, as is the default, there
+   *     will be no rendered and shadowed border around the bars.
+   *   {number} percent - a number value clamped from 0 to 100 that
+   *     indicates how full the vertical bar in this component should
+   *     be. [Note: does nothing if signal is true]
+   */
+  static NEMediumSignalLevel: (...args: []) => HTMLElement;
+
+  /**
+   * Creates a composite element that is shipped with the HTML class.
+   * The high signal level is a sort of progress indiciator that
+   * shows three vertical bars in ascending order from left to right.
+   * All three vertical bars will appear opaque and in color
+   * indicating the "signal" is at its strongest.
+   *
+   * It invokes the Levels factory method with the following default
+   * configuration:
+   *
+   * ```js
+   * { preset: 'high', signal: true, noBackground: true }
+   * ```
+   *
+   * @param {string} label if the label parameter is provided, a
+   * text label will appear adjacent to the right of the levels
+   * icon that is generated.
+   * @param {object} styles an optional object that supports setting
+   * the following values:
+   *   {string} preset - a string with one of 'low', 'medium', 'high'
+   *     as values.
+   *   {boolean} solid - if true, will prevent the component from
+   *     indicating each vertical bar as a gradient and use a single
+   *     color for each to differentiate their appearance.
+   *   {string} label - same as the first parameter, applied here it
+   *     will overwrite the value of the first parameter. You can
+   *     supply an object with a getter for `label` using this
+   *     approach if the value needs to be dynamic.
+   *   {boolean} signal - if true, as is the default here, you will
+   *     see three adjacent vertical bars instead of a single bar
+   *     with a more dynamic value.
+   *   {boolean} noBackground - if true, as is the default, there
+   *     will be no rendered and shadowed border around the bars.
+   *   {number} percent - a number value clamped from 0 to 100 that
+   *     indicates how full the vertical bar in this component should
+   *     be. [Note: does nothing if signal is true]
+   */
+  static NEHighSignalLevel: (...args: []) => HTMLElement;
+
+  /**
+   * Creates a composite element that ships with the HTML class. This
+   * variant of the Levels factory method shows a vertical bar, by
+   * defalut with a rendered and shadowed border. The bar's height
+   * can be adjusted by supplying a percent value as the first
+   * parameter. The second parameter will optionally provide a label,
+   * while the third allows full overrides of the styles.
+   *
+   * It invokes the Levels factory method with the following default
+   * configuration:
+   *
+   * ```js
+   * { percent: 0 }
+   * ```
+   *
+   * @param {number} percent a value from 0 to 100, indicating the
+   * percent complete the vertical bar is.
+   * @param {string} label if the label parameter is provided, a
+   * text label will appear adjacent to the right of the levels
+   * icon that is generated.
+   * @param {object} styles an optional object that supports setting
+   * the following values:
+   *   {string} preset - a string with one of 'low', 'medium', 'high'
+   *     as values. low equates to 33% percent, medium 66% and high
+   *     will be the same as 100%
+   *   {boolean} solid - if true, will prevent the component from
+   *     indicating each vertical bar as a gradient and use a single
+   *     color for each to differentiate their appearance.
+   *   {string} label - same as the first parameter, applied here it
+   *     will overwrite the value of the first parameter. You can
+   *     supply an object with a getter for `label` using this
+   *     approach if the value needs to be dynamic.
+   *   {boolean} signal - if true, you will see three adjacent
+   *     vertical bars instead of a single bar with a more dynamic
+   *     value. if true, percent will mean nothing and you must use
+   *     the preset property to choose one of three values for display
+   *   {boolean} noBackground - if true, as is the default, there
+   *     will be no rendered and shadowed border around the bars.
+   *   {number} percent - a number value clamped from 0 to 100 that
+   *     indicates how full the vertical bar in this component should
+   *     be. [Note: does nothing if signal is true]
+   */
+  static NELevel: (...args) => HTMLElement;
 
   static [tagName: string]: (...args: any[]) => HTMLElement;
 

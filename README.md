@@ -35,7 +35,6 @@ elements and inserting other elements quickly and easily.
  * [Proxy Notes](#proxy-notes)
  * [Command Symbols](#proxy-commands)
  * [Composite Elements](#composite-elements)
- * [Best Practices](#best-practices)
  * [ShadowDOM](#shadowdom)
  * [JSDelivr](#using-jsdelivr)
  * [Change Log](#changelog)
@@ -547,32 +546,6 @@ document.body.append(...preferences);
 This is nice, neat, tidy and will feel a lot like using webcomponents,
 Angular components or React. But it will be plain JavaScript.
 
-## <a name="best-practices">Best practices</a>
-_[↩︎ Back to top](#toc)_
-
-Adding this code to your project should likely be coupled with some
-definitions someplace. Something like
-
-```js
-// Import the HTML and commands, as well as your custom composite
-// components.
-import {HTML, commands} from '@nejs/html';
-import {LabeledCheckbox, defaultConfig} from './labeled.checkbox.js';
-
-// Register each composite component you'll use on your site.
-HTML[commands.register](
-  'LabeledCheckbox',
-  LabeledCheckbox,
-  defaultConfig
-);
-
-// Importing your usage of HTML from here, instead of '@nejs/html',
-// will ensure that your composite components are properly
-// registered in spite of horizontal web scaling or other server
-// side optimizations.
-export {HTML, commands};
-```
-
 ## <a name="shadowdom">A final word about the shadowDOM</a>
 _[↩︎ Back to top](#toc)_
 
@@ -643,6 +616,20 @@ const shadyDiv = HTML.div({shadow: {
 
 ## <a name="changelog">Changelog</a>
 _[↩︎ Back to top](#toc)_
+ * **3.0.0** - Provides more robust options.content conversion for text
+   nodes. This will allow types to better and more naturally be converted
+   whereas previously it was a bit too blind.
+
+   Additionally full documentation for registered composite components
+   and all typed methods are added to the built html.d.ts file so
+   that TypeScript users, misguided as they are, will see documentation
+   in its full glory.
+
+   Major rev due to changing how levels and composite components are
+   registered. Previously they were set to be invoked as a separate
+   command but I realised that since we were deploying to a browser
+   my previous concerns about horizontal scaling did not apply. Its
+   not a server side component.
  * **2.4.3** - Adding comments to html.d.ts and fixing a small type issue.
  * **2.4.2** - TypeScript, you are the reason we cannot have nice things
  * **2.4.1** - TypeScript, ever annoying, needs some hand crafted

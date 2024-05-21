@@ -179,12 +179,30 @@
       for (const [key, value] of Object.entries(options.style)) {
         element.style[key] = value;
       }
+      const validPrimitives = ["number", "symbol", "boolean", "bigint"];
+      const contentType = typeof options.content;
+      let textContent = void 0;
       if (isStr(options.content)) {
-        element.append(doc2.createTextNode(options.content));
+        textContent = [options.content];
+      } else if (validPrimitives.includes(contentType)) {
+        textContent = [String(options.content)];
       } else if (isArr(options.content)) {
-        element.append(
-          ...options.content.map((e) => doc2.createTextNode(String(e)))
-        );
+        textContent = options.content.map((contentValue) => {
+          const valueType = typeof contentValue;
+          if ((isStr(contentValue) || validPrimitives.includes(valueType)) && !(valueType === "object" && contentValue?.valueOf)) {
+            return String(contentValue);
+          } else if (contentValue?.valueOf) {
+            return String(contentValue.valueOf());
+          } else {
+            return void 0;
+          }
+        });
+      }
+      if (isArr(textContent)) {
+        const nodes = textContent.filter((truthy) => truthy).map((s) => doc2.createTextNode(s));
+        if (nodes.length) {
+          element.append(...nodes);
+        }
       }
       for (const child of options.children) {
         element.append(child);

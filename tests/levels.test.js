@@ -1,12 +1,8 @@
 // @vitest-environment jsdom
 
 const {HTML, commands} = await import('../dist/esm/html.js');
-const {Levels, registerLevels} = await import('../dist/esm/factories/levels.js');
+const {Levels} = await import('../dist/esm/factories/levels.js');
 const {beforeAll, describe, it, expect} = await import('vitest');
-
-beforeAll(() => {
-  registerLevels();
-})
 
 describe('should create previously registered components', () => {
   it('should create a NELowSignalLevel', () => {

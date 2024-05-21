@@ -1,7 +1,56 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerLevels = exports.Levels = void 0;
+exports.Levels = void 0;
 const html_js_1 = require("../html.js");
+/**
+ * Constructs a visual representation of levels based on the provided
+ * options and styles. This function creates a section element
+ * styled with CSS to represent different levels (e.g., low, medium,
+ * high) which can be dynamically adjusted.
+ *
+ * @param {Object} options - Configuration options for the levels.
+ * @param {string} [options.preset] - Initial preset of the level,
+ * can be overridden.
+ * @param {boolean} [options.solid] - If true, uses a solid color
+ * instead of gradients.
+ * @param {string} [options.label] - Label text to display next to
+ * the levels.
+ * @param {boolean} [options.signal] - If true, displays multiple
+ * level indicators.
+ * @param {boolean} [options.noBackground] - If true, no background
+ * is displayed.
+ * @param {number} [options.percent] - Percentage to fill the level
+ * indicator.
+ * @param {string} [argLabel=undefined] - Optional label, overrides
+ * options.label if provided.
+ * @param {Object} [argStyles] - Additional style options that can
+ * override initial settings.
+ * @param {string} [argStyles.preset] - Overrides the preset level
+ * setting.
+ * @param {boolean} [argStyles.solid] - Overrides the solid color
+ * setting.
+ * @param {string} [argStyles.label] - Overrides the label text.
+ * @param {boolean} [argStyles.signal] - Overrides the signal
+ * setting.
+ * @param {boolean} [argStyles.noBackground] - Overrides the
+ * background visibility.
+ *
+ * @returns {HTMLElement} The constructed element with levels
+ * visualization.
+ *
+ * @example
+ *  const levelConfig = {
+ *    preset: 'medium',
+ *    solid: true,
+ *    label: 'Progress',
+ *    signal: false,
+ *    noBackground: false,
+ *    percent: 75
+ *  };
+ *  const customStyles = { preset: 'high', label: 'Completion' };
+ *  const levelElement = Levels(levelConfig, undefined, customStyles);
+ *  document.body.appendChild(levelElement);
+ */
 function Levels(options, argLabel = undefined, argStyles) {
     const opportunities = ['low', 'medium', 'high'];
     let { preset, solid, label, signal, noBackground, percent } = options;
@@ -288,9 +337,165 @@ function generateCSS(elemSize) {
     }
   `;
 }
-exports.registerLevels = function (HTML, commands) {
+const registerLevels = function (HTML, commands) {
+    /**
+     * Creates a composite element that is shipped with the HTML class.
+     * The low signal level is a sort of progress indiciator that shows
+     * three vertical bars in ascending order from left to right. The
+     * low signal variant, shows the first bar in color with the second
+     * two in a translucent appearance to indicate they are not filled.
+     *
+     * It invokes the Levels factory method with the following default
+     * configuration:
+     *
+     * ```js
+     * { preset: 'low', signal: true, noBackground: true }
+     * ```
+     *
+     * @param {string} label if the label parameter is provided, a
+     * text label will appear adjacent to the right of the levels
+     * icon that is generated.
+     * @param {object} styles an optional object that supports setting
+     * the following values:
+     *   {string} preset - a string with one of 'low', 'medium', 'high'
+     *     as values.
+     *   {boolean} solid - if true, will prevent the component from
+     *     indicating each vertical bar as a gradient and use a single
+     *     color for each to differentiate their appearance.
+     *   {string} label - same as the first parameter, applied here it
+     *     will overwrite the value of the first parameter. You can
+     *     supply an object with a getter for `label` using this
+     *     approach if the value needs to be dynamic.
+     *   {boolean} signal - if true, as is the default here, you will
+     *     see three adjacent vertical bars instead of a single bar
+     *     with a more dynamic value.
+     *   {boolean} noBackground - if true, as is the default, there
+     *     will be no rendered and shadowed border around the bars.
+     *   {number} percent - a number value clamped from 0 to 100 that
+     *     indicates how full the vertical bar in this component should
+     *     be. [Note: does nothing if signal is true]
+     */
     HTML[commands.register]('NELowSignalLevel', Levels, { preset: 'low', signal: true, noBackground: true });
+    /**
+     * Creates a composite element that is shipped with the HTML class.
+     * The medium signal level is a sort of progress indiciator that
+     * shows three vertical bars in ascending order from left to right.
+     * The medium signal variant, shows the first and second bar in
+     * color with the third in a translucent appearance to indicate it
+     * is not filled.
+     *
+     * It invokes the Levels factory method with the following default
+     * configuration:
+     *
+     * ```js
+     * { preset: 'medium', signal: true, noBackground: true }
+     * ```
+     *
+     * @param {string} label if the label parameter is provided, a
+     * text label will appear adjacent to the right of the levels
+     * icon that is generated.
+     * @param {object} styles an optional object that supports setting
+     * the following values:
+     *   {string} preset - a string with one of 'low', 'medium', 'high'
+     *     as values.
+     *   {boolean} solid - if true, will prevent the component from
+     *     indicating each vertical bar as a gradient and use a single
+     *     color for each to differentiate their appearance.
+     *   {string} label - same as the first parameter, applied here it
+     *     will overwrite the value of the first parameter. You can
+     *     supply an object with a getter for `label` using this
+     *     approach if the value needs to be dynamic.
+     *   {boolean} signal - if true, as is the default here, you will
+     *     see three adjacent vertical bars instead of a single bar
+     *     with a more dynamic value.
+     *   {boolean} noBackground - if true, as is the default, there
+     *     will be no rendered and shadowed border around the bars.
+     *   {number} percent - a number value clamped from 0 to 100 that
+     *     indicates how full the vertical bar in this component should
+     *     be. [Note: does nothing if signal is true]
+     */
     HTML[commands.register]('NEMediumSignalLevel', Levels, { preset: 'medium', signal: true, noBackground: true });
+    /**
+     * Creates a composite element that is shipped with the HTML class.
+     * The high signal level is a sort of progress indiciator that
+     * shows three vertical bars in ascending order from left to right.
+     * All three vertical bars will appear opaque and in color
+     * indicating the "signal" is at its strongest.
+     *
+     * It invokes the Levels factory method with the following default
+     * configuration:
+     *
+     * ```js
+     * { preset: 'high', signal: true, noBackground: true }
+     * ```
+     *
+     * @param {string} label if the label parameter is provided, a
+     * text label will appear adjacent to the right of the levels
+     * icon that is generated.
+     * @param {object} styles an optional object that supports setting
+     * the following values:
+     *   {string} preset - a string with one of 'low', 'medium', 'high'
+     *     as values.
+     *   {boolean} solid - if true, will prevent the component from
+     *     indicating each vertical bar as a gradient and use a single
+     *     color for each to differentiate their appearance.
+     *   {string} label - same as the first parameter, applied here it
+     *     will overwrite the value of the first parameter. You can
+     *     supply an object with a getter for `label` using this
+     *     approach if the value needs to be dynamic.
+     *   {boolean} signal - if true, as is the default here, you will
+     *     see three adjacent vertical bars instead of a single bar
+     *     with a more dynamic value.
+     *   {boolean} noBackground - if true, as is the default, there
+     *     will be no rendered and shadowed border around the bars.
+     *   {number} percent - a number value clamped from 0 to 100 that
+     *     indicates how full the vertical bar in this component should
+     *     be. [Note: does nothing if signal is true]
+     */
     HTML[commands.register]('NEHighSignalLevel', Levels, { preset: 'high', signal: true, noBackground: true });
-    HTML[commands.register]('NELevel', Levels, { percent: 0 });
-}.bind(undefined, html_js_1.HTML, html_js_1.commands);
+    /**
+     * Creates a composite element that ships with the HTML class. This
+     * variant of the Levels factory method shows a vertical bar, by
+     * defalut with a rendered and shadowed border. The bar's height
+     * can be adjusted by supplying a percent value as the first
+     * parameter. The second parameter will optionally provide a label,
+     * while the third allows full overrides of the styles.
+     *
+     * It invokes the Levels factory method with the following default
+     * configuration:
+     *
+     * ```js
+     * { percent: 0 }
+     * ```
+     *
+     * @param {number} percent a value from 0 to 100, indicating the
+     * percent complete the vertical bar is.
+     * @param {string} label if the label parameter is provided, a
+     * text label will appear adjacent to the right of the levels
+     * icon that is generated.
+     * @param {object} styles an optional object that supports setting
+     * the following values:
+     *   {string} preset - a string with one of 'low', 'medium', 'high'
+     *     as values. low equates to 33% percent, medium 66% and high
+     *     will be the same as 100%
+     *   {boolean} solid - if true, will prevent the component from
+     *     indicating each vertical bar as a gradient and use a single
+     *     color for each to differentiate their appearance.
+     *   {string} label - same as the first parameter, applied here it
+     *     will overwrite the value of the first parameter. You can
+     *     supply an object with a getter for `label` using this
+     *     approach if the value needs to be dynamic.
+     *   {boolean} signal - if true, you will see three adjacent
+     *     vertical bars instead of a single bar with a more dynamic
+     *     value. if true, percent will mean nothing and you must use
+     *     the preset property to choose one of three values for display
+     *   {boolean} noBackground - if true, as is the default, there
+     *     will be no rendered and shadowed border around the bars.
+     *   {number} percent - a number value clamped from 0 to 100 that
+     *     indicates how full the vertical bar in this component should
+     *     be. [Note: does nothing if signal is true]
+     */
+    HTML[commands.register]('NELevel', function NELevelFactory(config, percent, label, styles) {
+        return Levels(config, label, { percent, ...(styles || {}) });
+    }, { percent: 0 });
+}.bind(undefined, html_js_1.HTML, html_js_1.commands)();
