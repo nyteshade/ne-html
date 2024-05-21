@@ -301,52 +301,52 @@ const element = HTML.div([
 **<a name="api-html-register">HTML[commands.register]</a>**
 <br><a>_↩︎ Back to_</a> ◌ _[ Top](#toc)_ ◌ _[API](#api)_
 
-Registers a factory function under a given name with optional 
-configuration, binding context, and additional arguments. This 
-method stores the factory function and its associated data in a 
-centralized storage, allowing for retrieval and utilization 
-elsewhere in the application. For read only or otherwise immutable 
-components, the factories can be fairly simply. Simply stamping 
+Registers a factory function under a given name with optional
+configuration, binding context, and additional arguments. This
+method stores the factory function and its associated data in a
+centralized storage, allowing for retrieval and utilization
+elsewhere in the application. For read only or otherwise immutable
+components, the factories can be fairly simply. Simply stamping
 down a new component as one might expect.
- 
+
 For composite components that support dynamism in their creation
-a more complex factory is often required, but also engenders 
+a more complex factory is often required, but also engenders
 greater reusability. *[See example](#composite-elements)*
- 
- * **{** *string* **}** **name -** The unique name to register the factory 
+
+ * **{** *string* **}** **name -** The unique name to register the factory
    function under.
- * **{** *Function* **}** **factoryFunction -** The factory function to 
+ * **{** *Function* **}** **factoryFunction -** The factory function to
    register.
- * **{** *Object* **}** **[config={}] -** Optional configuration object for 
+ * **{** *Object* **}** **[config={}] -** Optional configuration object for
    the factory function.
- * **{** *any* **}** **thisArg -** The value of `this` to be used when 
+ * **{** *any* **}** **thisArg -** The value of `this` to be used when
    invoking the factory function.
- * **{** *...any* **}** **args -** Additional arguments to pass to the 
+ * **{** *...any* **}** **args -** Additional arguments to pass to the
    factory function upon invocation.
-   
+
 ```js
 HTML[commands.register](
-  'SmRedButton', 
-  buttonFactory, 
-  {color: 'red'}, 
-  this, 
+  'SmRedButton',
+  buttonFactory,
+  {color: 'red'},
+  this,
   'small'
 );
 
 const button = HTML.SmRedButton();
 
 // This registers a `buttonFactory` under the name 'SmRedButton'
-// with a configuration specifying the color as 'red', binds 
+// with a configuration specifying the color as 'red', binds
 // `this` for context, and passes 'small' as an argument.
 ```
 
 **<a name="api-html-registered">HTML[commands.registered]</a>**
 <br><a>_↩︎ Back to_</a> ◌ _[ Top](#toc)_ ◌ _[API](#api)_
 
-Invoking the `HTML[commands.registered]()` function will return a 
-*Iterable* that can be walked or converted to an array using either 
+Invoking the `HTML[commands.registered]()` function will return a
+*Iterable* that can be walked or converted to an array using either
 `[...HTML[commands.registered]()]` or `Array.from(HTML[commands.registered]())`.
-The elements inside are a set of entries, in the format: 
+The elements inside are a set of entries, in the format:
 
 ```js
 [[registeredName, registeredMetadata]]
@@ -356,29 +356,29 @@ Each `registeredMetadata` is a `Map` that has at least these four keys
 registered for each composite component
 
  * `factory` - the function that generates html elements when invoked
- * `config` - the preset configuration that allows you to, by default, 
+ * `config` - the preset configuration that allows you to, by default,
    get different output from the same function under differently
    registered names
- * `thisArg` - an optional `this` for the `factory` function execution. 
-   *Note: if you supply a big arrow function (`() => {}`) then you will 
-   not be able to apply a `thisArg` to its execution. Use a normal 
+ * `thisArg` - an optional `this` for the `factory` function execution.
+   *Note: if you supply a big arrow function (`() => {}`) then you will
+   not be able to apply a `thisArg` to its execution. Use a normal
    function if this is a need you have.*
  * `args` - note that arguments here are essential the first n-arguments
    in order, but if your factory doesn't support working with configs
-   
+
 Effectively, when a composite element is created, this data is used like
 this:
 
 ```js
 (...dynamicArgs) => factory.call(
-  thisArg, 
-  config, 
-  ...args, 
+  thisArg,
+  config,
+  ...args,
   ...dynamicArgs
 )
 ```
 
-Where `args` are the arguments at the time of registration, and 
+Where `args` are the arguments at the time of registration, and
 `dynamicArgs` are those passed into the call.
 
 ```js
@@ -643,8 +643,9 @@ const shadyDiv = HTML.div({shadow: {
 
 ## <a name="changelog">Changelog</a>
 _[↩︎ Back to top](#toc)_
+ * **2.4.3** - Adding comments to html.d.ts and fixing a small type issue.
  * **2.4.2** - TypeScript, you are the reason we cannot have nice things
- * **2.4.1** - TypeScript, ever annoying, needs some hand crafted 
+ * **2.4.1** - TypeScript, ever annoying, needs some hand crafted
    types for HTML since it uses a Proxy in its prototype chain
  * **2.4.0** - Added unit tests for `HTML.Levels` and significantly
    improved documentation.
