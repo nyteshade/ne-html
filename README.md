@@ -616,6 +616,7 @@ const shadyDiv = HTML.div({shadow: {
 
 ## <a name="changelog">Changelog</a>
 _[↩︎ Back to top](#toc)_
+ * **3.0.2** - More typescript crap
  * **3.0.1** - Le sigh. Small oversight in `cssVar` property.
  * **3.0.0** - Provides more robust options.content conversion for text
    nodes. This will allow types to better and more naturally be converted

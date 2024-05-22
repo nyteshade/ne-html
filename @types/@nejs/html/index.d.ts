@@ -274,7 +274,11 @@ export class HTML {
    *     indicates how full the vertical bar in this component should
    *     be. [Note: does nothing if signal is true]
    */
-  static NELowSignalLevel: (...args: []) => HTMLElement;
+  static NELowSignalLevel: (
+    label?: string,
+    styles?: Record<any,any>,
+    ...args: any[]
+  ) => HTMLElement;
 
   /**
    * Creates a composite element that is shipped with the HTML class.
@@ -314,7 +318,11 @@ export class HTML {
    *     indicates how full the vertical bar in this component should
    *     be. [Note: does nothing if signal is true]
    */
-  static NEMediumSignalLevel: (...args: []) => HTMLElement;
+  static NEMediumSignalLevel: (
+    label?: string,
+    styles?: Record<any,any>,
+    ...args: any[]
+  ) => HTMLElement;
 
   /**
    * Creates a composite element that is shipped with the HTML class.
@@ -353,7 +361,11 @@ export class HTML {
    *     indicates how full the vertical bar in this component should
    *     be. [Note: does nothing if signal is true]
    */
-  static NEHighSignalLevel: (...args: []) => HTMLElement;
+  static NEHighSignalLevel: (
+    label?: string,
+    styles?: Record<any,any>,
+    ...args: any[]
+  ) => HTMLElement;
 
   /**
    * Creates a composite element that ships with the HTML class. This
@@ -377,27 +389,32 @@ export class HTML {
    * icon that is generated.
    * @param {object} styles an optional object that supports setting
    * the following values:
-   *   {string} preset - a string with one of 'low', 'medium', 'high'
-   *     as values. low equates to 33% percent, medium 66% and high
-   *     will be the same as 100%
-   *   {boolean} solid - if true, will prevent the component from
-   *     indicating each vertical bar as a gradient and use a single
-   *     color for each to differentiate their appearance.
-   *   {string} label - same as the first parameter, applied here it
-   *     will overwrite the value of the first parameter. You can
-   *     supply an object with a getter for `label` using this
-   *     approach if the value needs to be dynamic.
-   *   {boolean} signal - if true, you will see three adjacent
-   *     vertical bars instead of a single bar with a more dynamic
-   *     value. if true, percent will mean nothing and you must use
-   *     the preset property to choose one of three values for display
-   *   {boolean} noBackground - if true, as is the default, there
-   *     will be no rendered and shadowed border around the bars.
-   *   {number} percent - a number value clamped from 0 to 100 that
-   *     indicates how full the vertical bar in this component should
-   *     be. [Note: does nothing if signal is true]
+   * {string} preset - a string with one of 'low', 'medium', 'high'
+   * as values. low equates to 33% percent, medium 66% and high
+   * will be the same as 100%
+   * {boolean} solid - if true, will prevent the component from
+   * indicating each vertical bar as a gradient and use a single
+   * color for each to differentiate their appearance.
+   * {string} label - same as the first parameter, applied here it
+   * will overwrite the value of the first parameter. You can
+   * supply an object with a getter for `label` using this
+   * approach if the value needs to be dynamic.
+   * {boolean} signal - if true, you will see three adjacent
+   * vertical bars instead of a single bar with a more dynamic
+   * value. if true, percent will mean nothing and you must use
+   * the preset property to choose one of three values for display
+   * {boolean} noBackground - if true, as is the default, there
+   *   will be no rendered and shadowed border around the bars.
+   * {number} percent - a number value clamped from 0 to 100 that
+   *   indicates how full the vertical bar in this component should
+   *   be. [Note: does nothing if signal is true]
    */
-  static NELevel: (...args) => HTMLElement;
+  static NELevel: (
+    percent?: number,
+    label?: string,
+    styles?: Record<any,any>,
+    ...args: any[]
+  ) => HTMLElement;
 
   static [tagName: string]: (...args: any[]) => HTMLElement;
 
