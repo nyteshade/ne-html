@@ -448,7 +448,9 @@ const registerLevels = function (HTML, commands) {
      *     indicates how full the vertical bar in this component should
      *     be. [Note: does nothing if signal is true]
      */
-    HTML[commands.register]('NEHighSignalLevel', Levels, { preset: 'high', signal: true, noBackground: true });
+    HTML[commands.register]('NEHighSignalLevel', function (config, label, styles, ...args) {
+        return Levels(config, ...[label, styles, ...args]);
+    }, { preset: 'high', signal: true, noBackground: true });
     /**
      * Creates a composite element that ships with the HTML class. This
      * variant of the Levels factory method shows a vertical bar, by

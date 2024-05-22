@@ -470,7 +470,9 @@ const registerLevels = function(HTML, commands) {
    *     be. [Note: does nothing if signal is true]
    */
   HTML[commands.register]('NEHighSignalLevel',
-    Levels,
+    function(config, label, styles, ...args) {
+      return Levels(config, ...[label, styles, ...args])
+    },
     { preset: 'high', signal: true, noBackground: true }
   );
 

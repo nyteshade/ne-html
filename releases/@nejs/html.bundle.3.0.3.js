@@ -1299,7 +1299,9 @@
     );
     HTML2[commands2.register](
       "NEHighSignalLevel",
-      Levels,
+      function(config, label, styles, ...args) {
+        return Levels(config, ...[label, styles, ...args]);
+      },
       { preset: "high", signal: true, noBackground: true }
     );
     HTML2[commands2.register](
