@@ -150,7 +150,11 @@
     static create() {
       const options = _HTML[commands.parse](...arguments);
       const doc = options?.useDocument ?? top.window.document;
-      const reusableStyleSheet = new CSSStyleSheet();
+      let reusableStyleSheet = void 0;
+      try {
+        reusableStyleSheet = new CSSStyleSheet();
+      } catch (ignore) {
+      }
       let reusableStyleElement = doc.querySelector("style#htmljs");
       const { tagName: _tag, webComponentName: _wcn } = options;
       const element = doc.createElement(_tag, _wcn);
@@ -639,6 +643,13 @@
              * element.cssVar.set('main-color', 'blue', someShadowRoot);
              */
             set(variableSansLeadingDashes, value, layer) {
+              if (!reusableStyleSheet || !reusableStyleSheet.replaceSync) {
+                console.warn([
+                  "Unable to set cssVar as creating a CSSStyleSheet",
+                  "was unable to be performed."
+                ].join(" "));
+                return;
+              }
               const root = layer ? layer : element?.shadowRoot || doc;
               const key = `--${variableSansLeadingDashes}`;
               const cssLayer = element.shadowRoot ? ":host" : ":root";

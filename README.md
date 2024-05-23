@@ -616,6 +616,7 @@ const shadyDiv = HTML.div({shadow: {
 
 ## <a name="changelog">Changelog</a>
 _[↩︎ Back to top](#toc)_
+ * **3.0.6** - forgot to run npm build
  * **3.0.5** - some additional protections put in place around cssVar.set,
    as well as some additional freaking TypeScript ensured values put into
    place.
