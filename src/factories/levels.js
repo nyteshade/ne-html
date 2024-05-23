@@ -74,7 +74,7 @@ export function Levels(options, argLabel = undefined, argStyles) {
       HTML.style(generateCSS(elemSize)),
       HTML.article([
         HTML.figure({
-          class: `levels ${preset}`,
+          class: `levels`,
           children: [
             HTML.figure({class: `level`}),
           ].concat(signal ? [
@@ -98,6 +98,7 @@ export function Levels(options, argLabel = undefined, argStyles) {
 
   if (levels) {
     const classes = [
+      ['low', 'medium', 'high'].includes(preset) && preset,
       !!solid && 'solid',
       !!signal && 'signal-aspect',
       !!noBackground && 'no-background',
@@ -385,7 +386,9 @@ const registerLevels = function(HTML, commands) {
    *     be. [Note: does nothing if signal is true]
    */
   HTML[commands.register]('NELowSignalLevel',
-    Levels,
+    function(config, label, styles, ...args) {
+      return Levels(config, ...[label, styles, ...args])
+    },
     { preset: 'low', signal: true, noBackground: true }
   );
 
@@ -428,7 +431,9 @@ const registerLevels = function(HTML, commands) {
    *     be. [Note: does nothing if signal is true]
    */
   HTML[commands.register]('NEMediumSignalLevel',
-    Levels,
+    function(config, label, styles, ...args) {
+      return Levels(config, ...[label, styles, ...args])
+    },
     { preset: 'medium', signal: true, noBackground: true }
   );
 

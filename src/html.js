@@ -213,7 +213,11 @@ class HTML {
     // Reusable style sheet used and updated for all instances of the
     // HTMLElement instances created. These are used specifically
     // with the `cssVar` property `.get()` and `.set()` methods.
-    const reusableStyleSheet = new CSSStyleSheet();
+    let reusableStyleSheet = undefined;
+    try {
+      reusableStyleSheet = new CSSStyleSheet();
+    }
+    catch (ignore) {}
 
     // The first time that `cssVar` are used with an element that
     // does not possess a `shadowRoot`, an element is created and
@@ -880,6 +884,14 @@ class HTML {
          * element.cssVar.set('main-color', 'blue', someShadowRoot);
          */
         set(variableSansLeadingDashes, value, layer) {
+          if (!reusableStyleSheet || !reusableStyleSheet.replaceSync) {
+            console.warn([
+              'Unable to set cssVar as creating a CSSStyleSheet',
+              'was unable to be performed.'
+            ].join(' '));
+            return;
+          }
+
           const root = layer ? layer : (element?.shadowRoot || doc);
           const key = `--${variableSansLeadingDashes}`;
           const cssLayer = element.shadowRoot ? ':host' : ':root';
